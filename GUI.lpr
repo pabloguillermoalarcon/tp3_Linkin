@@ -1,5 +1,4 @@
 program GUI;
-
 {$mode objfpc}{$H+}
 
 uses
