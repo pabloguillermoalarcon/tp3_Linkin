@@ -8,8 +8,8 @@ USES
     {$ENDIF}{$ENDIF}
     VectorD, Math;
 
-CONST
-     MASCARA = 2; //mascara para los reales con writeln
+{CONST
+     MASCARA = 2; //mascara para los reales con writeln }
 
 TYPE
 
@@ -56,6 +56,7 @@ Cls_Matriz= class
               Property cells[i, j: integer]:extended READ getcell WRITE setCell;
               Property NumF: integer READ NF WRITE NF;
               Property NumC: integer READ NC WRITE NC;
+              Procedure Mostrar(titulo: string =''; mascara:integer = 2); //Limpiar pantalla antes de invocar
               Procedure Limpia(k: extended = 0);//Llena de un num k, por defecto cero a la matriz
               Procedure Redimensionar(filas,columnas: integer);
               Procedure copiar(const V: Cls_Matriz); //A := V
@@ -91,7 +92,6 @@ Cls_Matriz= class
               Function Norma_Infinita():extended; //REVISAR
               Procedure Indice_Mayor(VAR i: integer; VAR j: integer);//REVISAR //devuelve el indice del mayor numero dentro de la matriz
               Procedure Indice_Mayor_abs(VAR i: integer; VAR j: integer); //REVISAR//devuelve el indice del mayor numero dentro de la matriz en abs
-              Procedure Mostrar(titulo: string =''); //Limpiar pantalla antes de invocar
               Procedure Indice_Mayor_fila(const fila: integer; VAR i: integer; VAR j: integer); //REVISAR//devuelve el indice del mayor numero dentro de la fila
               Procedure Indice_Mayor_fila_abs(const fila: integer; VAR i: integer; VAR j: integer); //REVISAR//devuelve el indice del mayor numero dentro de la fila en abs
               Procedure Indice_Mayor_columna(const columna: integer; VAR i: integer; VAR j: integer); //REVISAR//devuelve el indice del mayor numero dentro de la columna
@@ -139,7 +139,7 @@ Begin
      NumC:= columnas-1;
 end;
 
-Procedure Cls_Matriz.Mostrar(titulo: string ='');
+Procedure Cls_Matriz.Mostrar(titulo: string =''; mascara:integer = 2);
 var
    i,j :integer;
 Begin

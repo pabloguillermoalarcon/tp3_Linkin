@@ -6,10 +6,7 @@ USES
     {$IFDEF UNIX}{$IFDEF UseCThreads}
     cthreads, cmem
     {$ENDIF}{$ENDIF}
-    math;
-
-CONST
-     MASCARA = 2; //mascara para los reales con writeln
+    math, sysutils;
 
 TYPE
 Cls_Vector = class
@@ -46,7 +43,6 @@ Cls_Vector = class
         constructor crear(cant: integer = 10); //por defecto crea un vector con 10 elementos, num es opcional
         Property cells[i: integer]: extended READ GetCell WRITE SetCell;
         Property N: integer READ OrdenN WRITE OrdenN; //N
-
         Function Norma_1(): extended;//SUM(abs(i)), i=1..N
         Function Norma_2(): extended;//euclidea sqrt(SUM(i^2)), i=1..N
         Function Norma_Infinita(): extended; //MAYOR(abs(i)), i=1..N
@@ -61,7 +57,6 @@ Cls_Vector = class
         Procedure Intercambiar(const i: integer; const j: integer);
         Procedure eliminaX(const pos: integer);
         Procedure insertarX(const elemento: extended; const pos: integer);
-
         {Muestra el vector por consola (usando Write), por defecto en Horizontal, con opcion
         de mandar como parametro entero 1 para que lo muestre vertical al vector
         Ejemplos:
@@ -72,7 +67,7 @@ Cls_Vector = class
         vecA.mostrar('titulo')----> muestra horizontal con titulo
         vecA.mostrar('titulo', cualquier valor entero <> 1); ----> muestra Horizontal con titulo
         vecA.mostrar('titulo',1)----> muestra vertical con titulo}
-        Procedure mostrar(titulo: String = ''; s: byte = 0); //consola
+        Procedure mostrar(titulo: String = ''; s: byte = 0; mascara: integer =2); //consola
         procedure mostrar(s: byte); //consola
 
         {OJO!!! al ser un objetos si realizamos VecA:= VecB en el programa directamente,
@@ -101,7 +96,7 @@ end;
 
 Procedure Cls_Vector.setCell(i: integer; num: extended);
 Begin
-     xCell[i]:= num;
+     xCell[i]:= num
 end;
 
 Function Cls_Vector.getCell(i: integer): extended;
@@ -165,7 +160,7 @@ Begin
          cells[i]:= k;
 end;
 
-procedure Cls_Vector.mostrar(titulo:String=''; s: byte = 0); //consola
+procedure Cls_Vector.mostrar(titulo:String=''; s: byte = 0; mascara: integer =2); //consola
 VAR
    i:integer;
 Begin
@@ -187,10 +182,10 @@ Begin
      writeln;
      if (s = 1) then //muestra vertical
         for i:= 0 to N do
-            writeln(cells[i]:0:MASCARA)
+            writeln(cells[i]:0:2)
      else begin//muestra horizontal por defecto, con cualquier valor en s <>1
         for i:= 0 to N do
-            write(cells[i]:0:MASCARA,' ');
+            write(cells[i]:0:2,' ');
         writeln;
      end;
 end;

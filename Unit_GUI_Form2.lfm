@@ -1,0 +1,156 @@
+object Form2: TForm2
+  Left = 502
+  Height = 367
+  Top = 211
+  Width = 660
+  BorderIcons = [biMinimize]
+  BorderStyle = bsDialog
+  Caption = 'Editar Polinomio'
+  ClientHeight = 367
+  ClientWidth = 660
+  LCLVersion = '1.6.0.4'
+  object Matriz_String: TStringGrid
+    Left = 8
+    Height = 96
+    Hint = 'Click para invertir los coeficientes'
+    Top = 8
+    Width = 640
+    Color = clDefault
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goAlwaysShowEditor, goColSpanning, goFixedRowNumbering]
+    ParentShowHint = False
+    RowCount = 2
+    ShowHint = True
+    TabOrder = 0
+    OnEditingDone = Matriz_StringEditingDone
+    OnHeaderClick = Matriz_StringHeaderClick
+    ColWidths = (
+      64
+      143
+      143
+      143
+      146
+    )
+    Cells = (
+      3
+      0
+      0
+      'X'
+      0
+      1
+      'coef.'
+      1
+      0
+      'a0'
+    )
+  end
+  object Mascara_TrackBar: TTrackBar
+    Left = 152
+    Height = 26
+    Hint = 'Mascara de coeficientes'
+    Top = 112
+    Width = 496
+    Max = 11
+    OnChange = Mascara_TrackBarChange
+    PageSize = 1
+    Position = 2
+    ShowSelRange = False
+    TickMarks = tmBoth
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
+  end
+  object Aceptar: TButton
+    Left = 360
+    Height = 33
+    Top = 320
+    Width = 78
+    Caption = 'Aceptar'
+    OnClick = AceptarClick
+    TabOrder = 2
+  end
+  object Menos: TButton
+    Left = 8
+    Height = 30
+    Top = 8
+    Width = 30
+    Caption = '-'
+    Color = clRed
+    Font.Height = -35
+    Font.Name = 'Noto Sans'
+    Font.Style = [fsBold]
+    OnClick = MenosClick
+    ParentFont = False
+    TabOrder = 3
+  end
+  object Mas: TButton
+    Left = 40
+    Height = 30
+    Top = 8
+    Width = 30
+    Caption = '+'
+    Color = clLime
+    Font.Height = -32
+    Font.Name = 'Noto Sans'
+    Font.Style = [fsBold]
+    OnClick = MasClick
+    ParentFont = False
+    TabOrder = 4
+  end
+  object Label_Mascara: TLabel
+    Left = 8
+    Height = 23
+    Top = 112
+    Width = 119
+    Caption = 'Label_Mascara'
+    Font.Height = -17
+    Font.Name = 'Noto Sans'
+    Font.Style = [fsBold, fsItalic]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Preview_GroupBox: TGroupBox
+    Left = 8
+    Height = 161
+    Top = 152
+    Width = 640
+    Caption = 'Preview'
+    ClientHeight = 127
+    ClientWidth = 636
+    Font.Height = -16
+    Font.Name = 'Noto Sans'
+    Font.Style = [fsBold, fsItalic]
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 5
+    object Preview_Label: TLabel
+      Left = 8
+      Height = 120
+      Top = 0
+      Width = 616
+      HelpType = htKeyword
+      Anchors = [akTop, akBottom]
+      AutoSize = False
+      BorderSpacing.CellAlignHorizontal = ccaCenter
+      BorderSpacing.CellAlignVertical = ccaCenter
+      Caption = 'Preview_Label'
+      Color = clDefault
+      Font.Height = -27
+      Font.Name = 'Noto Sans'
+      Font.Style = [fsBold, fsItalic]
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      Transparent = False
+      WordWrap = True
+    end
+  end
+  object Cancel_Buttom: TButton
+    Left = 256
+    Height = 33
+    Top = 320
+    Width = 83
+    Caption = 'Cancelar'
+    OnClick = Cancel_ButtomClick
+    TabOrder = 6
+  end
+end

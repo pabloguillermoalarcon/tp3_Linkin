@@ -27,22 +27,33 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="1">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="LCL"/>
+        <PackageName Value="RunTimeTypeInfoControls"/>
       </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="3">
       <Unit0>
         <Filename Value="GUI.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="unit_gui.pas"/>
+        <Filename Value="Unit_GUI.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="Unit_GUI_Form2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form2"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
