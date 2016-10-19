@@ -26,6 +26,8 @@ Type
          Function Grado(): integer; //Devuelve el grado del polinomio
          Function Coef_To_String(): string; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          //llenar con los metodos
+         function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+         function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          //ej: Procedure bairstrow(r,s); Tiene que cargar las raices directamente en la matriz Raices
 end;
 
@@ -134,6 +136,49 @@ end;
 function cls_polin.Grado():integer;
 Begin
      RESULT:= self.Coef.N;
+end;
+
+function Cls_Polin.horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+var
+    i:byte;
+    alfa:Extended;
+begin
+	if ((divisor.coef.N=1) and (divisor.Coef.cells[1]=1.0)) then
+	begin
+        alfa:=divisor.Coef.cells[0];
+		cociente:=Cls_Polin.crear(self.coef.N);
+        i:=self.coef.N;
+   	    cociente.Coef.cells[i-1]:=self.Coef.cells[i];
+        for i:=i-1 downto 1 do
+        begin
+        	cociente.Coef.cells[i-1]:=-alfa*cociente.coef.cells[i]+self.Coef.cells[i];
+    	end;
+
+		resto:=Cls_Polin.crear(1);
+        resto.Coef.cells[0]:=-alfa*cociente.coef.cells[0]+self.Coef.cells[0];
+		result:=true;
+	end
+	else
+		result:=false;
+end;
+
+function Cls_Polin.ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+var
+    beta,alfa:extended;
+begin
+    alfa:=divisor.Coef.cells[1];
+    beta:=divisor.Coef.cells[0];
+
+    divisor.coef.cells[1]:=1;
+    divisor.coef.cells[0]:=beta/alfa;
+    if horner(divisor,cociente,resto) then
+    begin
+        cociente.Coef.xEscalar(alfa);
+        resto.Coef.xEscalar(alfa);
+    	result:= true;
+	end
+	else
+    	result:=false;
 end;
 
 BEGIN
