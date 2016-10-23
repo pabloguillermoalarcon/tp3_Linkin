@@ -1,49 +1,53 @@
 object Form1: TForm1
-  Left = 401
+  Left = 403
   Height = 391
-  Top = 161
-  Width = 775
+  Top = 226
+  Width = 771
   BorderStyle = bsSingle
   Caption = 'Tp3 - Linkin'
   ClientHeight = 356
-  ClientWidth = 775
+  ClientWidth = 771
+  KeyPreview = True
   Menu = MainMenu1
   OnCreate = FormCreate
+  OnKeyPress = FormKeyPress
+  Position = poScreenCenter
   ShowHint = True
   LCLVersion = '1.6.0.4'
-  object Editar_Div1: TButton
-    Left = 656
-    Height = 25
-    Top = 304
-    Width = 107
-    Caption = 'editar_Div1'
-    OnClick = Editar_Div1Click
-    TabOrder = 0
-    Visible = False
-  end
-  object Pol_N_Label: TLabel
-    Left = 16
-    Height = 128
-    Hint = '<< Click para editar >>'''
-    Top = 8
-    Width = 744
-    HelpType = htKeyword
-    Anchors = [akTop, akBottom]
-    AutoSize = False
+  object Pol_N_Memo: TMemo
+    Left = 8
+    Height = 154
+    Hint = '<< Click para editar >>'
+    Top = 0
+    Width = 752
     BorderSpacing.CellAlignHorizontal = ccaCenter
     BorderSpacing.CellAlignVertical = ccaCenter
-    Caption = 'Pol_N_Label'
-    Font.Height = -27
+    Font.Height = -24
     Font.Name = 'Noto Sans'
-    Font.Style = [fsBold, fsItalic]
-    ParentColor = False
+    Font.Style = [fsBold]
+    Lines.Strings = (
+      '<< Click para editar >>'
+    )
+    OnClick = Item_EditarClick
+    OnMouseWheelDown = Pol_N_MemoMouseWheelDown
+    OnMouseWheelUp = Pol_N_MemoMouseWheelUp
     ParentFont = False
-    ParentShowHint = False
-    ShowHint = True
-    WordWrap = True
-    OnClick = Pol_N_LabelClick
+    ReadOnly = True
+    ScrollBars = ssAutoVertical
+    TabOrder = 0
+  end
+  object X_Label: TLabel
+    Left = 8
+    Height = 23
+    Hint = '<< Click para editar >>'
+    Top = 168
+    Width = 45
+    Caption = 'Pol(X)'
+    ParentColor = False
+    OnClick = X_LabelClick
   end
   object MainMenu1: TMainMenu
+    top = 65508
     object Pol_N_Main_Menu: TMenuItem
       Caption = 'Pol_N'
       object Item_Editar: TMenuItem
@@ -56,11 +60,19 @@ object Form1: TForm1
         ShortCut = 8265
         OnClick = item_invertirClick
       end
+      object Item_Limpiar: TMenuItem
+        Caption = 'Limpiar'
+        ShortCut = 8268
+        OnClick = Item_LimpiarClick
+      end
       object Item_Div1: TMenuItem
         Caption = 'Dividir x Polinomio Monico Grado1'
+        ShortCut = 8241
+        OnClick = Item_Div1Click
       end
       object Item_Div2: TMenuItem
         Caption = 'Dividir x Polinomio Monico Grado 2'
+        ShortCut = 8242
       end
       object Salir: TMenuItem
         Caption = 'Salir'
@@ -72,7 +84,6 @@ object Form1: TForm1
       Caption = 'Raices'
       object Raices_Enteras_Item: TMenuItem
         Caption = 'Posibles Enteras'
-        OnClick = Raices_Enteras_ItemClick
       end
       object Raices_Racionales_Item: TMenuItem
         Caption = 'Posibles Racionales'

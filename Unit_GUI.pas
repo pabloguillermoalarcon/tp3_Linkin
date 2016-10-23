@@ -16,14 +16,16 @@ uses
     {$IFDEF UNIX}{$IFDEF UseCThreads}
     cthreads, cmem
     {$ENDIF}{$ENDIF}
-    Classes, Forms, Dialogs, StdCtrls, Menus, SysUtils, PolinD;
+    Classes, Forms, StdCtrls, Menus, PolinD, Controls, Types;
 
 type
   { TForm1 }
   TForm1 = class(TForm)
-    Editar_Div1: TButton;
+    X_Label: TLabel;
     MainMenu1: TMainMenu;
     Item_Editar: TMenuItem;
+    Item_Limpiar: TMenuItem;
+    Pol_N_Memo: TMemo;
     Salir: TMenuItem;
     Raices_Racionales_Item: TMenuItem;
     Raices_Enteras_Item: TMenuItem;
@@ -37,22 +39,30 @@ type
     item_invertir: TMenuItem;
     Item_Div1: TMenuItem;
     Item_Div2: TMenuItem;
-    Pol_N_Label: TLabel;
-    procedure Item_EditarClick(Sender: TObject);
-    procedure Editar_Div1Click(Sender: TObject);
+
     procedure FormCreate(Sender: TObject);
-    function  Load(Polin: cls_Polin):boolean;
-    procedure item_invertirClick(Sender: TObject);
-    procedure Pol_N_LabelClick(Sender: TObject);
-    procedure Raices_Enteras_ItemClick(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: char);
+    procedure Item_EditarClick(Sender: TObject);
+    procedure Item_invertirClick(Sender: TObject);
+    procedure Item_Div1Click(Sender: TObject);
+    procedure Item_LimpiarClick(Sender: TObject);
+    procedure Pol_N_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
     procedure SalirClick(Sender: TObject);
+    Procedure Check_Enabled();
+    procedure X_LabelClick(Sender: TObject);
+    Function Calcular_Px(): extended;
   private
     { private declarations }
   public
      //Variables Principales
      Pol_N: cls_Polin; //Polinomio Principal de GradoN
-     Pol_Div1: cls_Polin; //X+a monico
-     Pol_Div2: cls_Polin; //X^2+rX+s monico
+     Pol_N_load: boolean;
+     MIN_MASC: byte;
+     MAX_MASC: byte;
+     X: extended;
   end;
 
 var
@@ -60,78 +70,144 @@ var
 
 implementation
 {$R *.lfm}
-{ TForm1 }
 USES
-    Unit_GUI_Form2;
+    Unit_GUI_Form2,  Unit_GUI_Form3, SysUtils, Dialogs;
 
-procedure TForm1.Editar_Div1Click(Sender: TObject);
+procedure TForm1.FormCreate(Sender: TObject);
 begin
-     if (Pol_Div1 = nil) then
-        Pol_Div1:= cls_Polin.Crear(1,2,false);
+     Pol_N:= cls_Polin.Crear(3);
+     Pol_N_load:= false;
+     self.Pol_N_Memo.Lines.Text:= '<< Click para editar >>';
+     self.Caption:= 'Tp3 - Linkin - Polinomio << Grado N >>';
+     MIN_MASC:= 0;
+     MAX_MASC:= 11;
+     X:= 0;
+     self.check_enabled();
+end;
 
-     Form2:= TForm2.Crear(Nil, Pol_Div1, 1);
-     Form2.ShowModal;
-     Form2.Free;
-     Form2:=nil; //FreeAndNil(Form2);
-     showmessage(Pol_Div1.Coef_To_String());
-
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: char);
+begin
+  if (key = #27) then
+     Close;
 end;
 
 procedure TForm1.Item_EditarClick(Sender: TObject);
 begin
-     if (not self.Load(Pol_N)) then
-        Pol_N:= cls_Polin.Crear(3,2,false);
+     //Tambien accede aqui menuItem--->Editar (Pol_N)
      Form2:= TForm2.Crear(Nil, Pol_N, 0);
      Form2.ShowModal;
-     Form2.Free;
-     Form2:=nil; //FreeAndNil(Form2);
-     if (self.Load(Pol_N)) then Begin
-         self.Pol_N_Label.Caption:= Pol_N.Coef_To_String();
+     if (Form2.ModalResult = mrOk) then Begin
+         self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
          Self.Caption:='Tp3 - Linkin - Polinomio << Grado '+IntToStr(Pol_N.Grado())+' >>';
+         X:= 0;
+         X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+         Self.Pol_N_load:= true;
+         self.check_enabled();
      end;
+     Form2.Free;
+     Form2:= nil; //FreeAndNil(Form2);
 end;
 
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TForm1.Item_Div1Click(Sender: TObject);
 begin
-     self.Pol_N_Label.Caption:= '<< Click para editar >>';
-     self.Caption:= 'Tp3 - Linkin - Polinomio << Grado N >>';
-end;
-
-function TForm1.Load(Polin: cls_Polin):boolean;
-Begin
-     Result:=not (Polin=nil);
+     Self.Visible:= False;
+     Form3:= TForm3.Crear(nil,Pol_N,1);
+     Form3.ShowModal;
+     Form3.Free;
+     Form3:= nil;
+     Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+     Self.Visible:= True;
+     self.check_enabled();
 end;
 
 procedure TForm1.item_invertirClick(Sender: TObject);
 begin
-     if self.Load(Pol_N)then begin
+     if (Pol_N_load)then begin
         Pol_N.band_A0:= not Pol_N.band_A0;
-        self.Pol_N_Label.Caption:= Pol_N.Coef_To_String();
+        self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
      end;
 end;
 
-procedure TForm1.Pol_N_LabelClick(Sender: TObject);
+procedure TForm1.Item_LimpiarClick(Sender: TObject);
 begin
-     if (not self.Load(Pol_N)) then
-        Pol_N:= cls_Polin.Crear(3,2,false);
-     Form2:= TForm2.Crear(Nil, Pol_N, 0);
-     Form2.ShowModal;
-     Form2.Free;
-     Form2:=nil; //FreeAndNil(Form2);
-     if (self.Load(Pol_N)) then Begin
-         self.Pol_N_Label.Caption:= Pol_N.Coef_To_String();
-         Self.Caption:='Tp3 - Linkin - Polinomio << Grado '+IntToStr(Pol_N.Grado())+' >>';
-     end;
+     Pol_N.Free;
+     FormCreate(Self);
 end;
 
-procedure TForm1.Raices_Enteras_ItemClick(Sender: TObject);
+procedure TForm1.Pol_N_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
 begin
+     If (Pol_N.Masc > MIN_MASC) then Begin
+         Pol_N.Masc:= Pol_N.Masc -1
+     end else Pol_N.Masc:= self.MAX_MASC -1;
+     self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+end;
 
+procedure TForm1.Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+     If (Pol_N.Masc < self.MAX_MASC) then Begin
+         Pol_N.Masc:= Pol_N.Masc +1;
+         if Pol_N.Masc=self.MAX_MASC then Pol_N.Masc:= 0;
+         self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+     end;
 end;
 
 procedure TForm1.SalirClick(Sender: TObject);
 begin
      self.Close;
+end;
+
+Procedure TForm1.check_enabled();
+Begin
+     if (not Pol_N_load) then Begin
+         self.Item_invertir.Visible:= False;
+         self.Item_invertir.Enabled:= False;
+         self.Item_Limpiar.Visible:= False;
+         self.Item_Limpiar.Enabled:= False;
+         self.Item_Div1.Visible:= False;
+         self.Item_Div1.Enabled:= False;
+         self.Item_Div2.Visible:= False;
+         self.Item_Div2.Enabled:= False;
+         self.Raices_Menu.Visible:= False;
+         self.X_Label.Visible:= False;
+     end else Begin // Pol_N esta cargado
+              self.Item_invertir.Visible:= True;
+              self.Item_invertir.Enabled:= True;
+              self.Item_Limpiar.Visible:= True;
+              self.Item_Limpiar.Enabled:= True;
+              self.Item_Div1.Visible:= True;
+              self.Item_Div1.Enabled:= True;
+              self.Item_Div2.Visible:= True;
+              self.Item_Div2.Enabled:= True;
+              self.Raices_Menu.Visible:= True;
+              self.X_Label.Visible:= True;
+     end;
+end;
+
+procedure TForm1.X_LabelClick(Sender: TObject);
+var
+  cad: string;
+  pos: integer;
+begin
+     cad:= InputBox('Cambiar Valor P(X)','Ingrese X: ', FloatToStr(X));
+     if (cad <> '') then Begin
+        Val(cad,X,pos);
+        if (pos=0) then
+           X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+     end;
+end;
+Function TForm1.Calcular_Px(): extended;
+var
+  divi,coc,res: cls_polin;
+Begin
+     divi:= cls_Polin.Crear(1);
+     divi.Coef.cells[1]:= 1;
+     divi.Coef.cells[0]:= -X;
+     coc:= cls_Polin.Crear(self.Pol_N.Grado() -1);
+     res:= cls_Polin.Crear(0);
+     Pol_N.ruffini(divi,coc,res);
+     Result:= res.Coef.cells[0];
 end;
 
 BEGIN

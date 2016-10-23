@@ -10,7 +10,7 @@ USES
 VAR
     M,M2,M3: cls_Matriz;
     V, V2: cls_vector;
-    pol_n: cls_polin;
+    pol_n, divi,coc,rest: cls_polin;
 BEGIN
 
 {************************* <<< Leeme.txt >>> ********************************
@@ -35,15 +35,25 @@ N5: PolinD basicamente es un vector dinamico de extended
   //Pueden Utilizar ShowMessage para notificar de algun error en el metodo que esten construyendo
   //ShowMessage('Leer README.md para ver la propuesta de codigo, cualquier sugerencia manden al grupo de whatsapp');
 
-   pol_N:= cls_Polin.Crear(2, 4,false);
-   pol_N.Coef.cells[0]:= 1;
-   pol_N.Coef.cells[1]:= 0;
-   pol_N.Coef.cells[2]:= 2;
-   if pol_N.band_A0 then writeln('True')
-   else (writeln('False')) ;
+   pol_N:= cls_Polin.Crear(4);
+   divi:= cls_Polin.Crear(1);
+   coc:= cls_Polin.Crear(3);
+   rest:= cls_Polin.Crear(0);
 
-   pol_N.Coef.mostrar('Coef: ');
-   writeln('Pol= '+ Pol_N.Coef_To_String());
+   divi.Coef.cells[1]:= 1;
+   divi.Coef.cells[0]:= 1;
+
+   pol_N.Coef.cells[4]:= 3;
+   pol_N.Coef.cells[3]:= 2;
+   pol_N.Coef.cells[2]:= 1;
+   pol_N.Coef.cells[1]:= 1;
+   pol_N.Coef.cells[0]:= 1;
+
+   Pol_N.ruffini(divi,coc,rest);
+   writeln('Pol: ', Pol_N.Coef_To_String());
+   writeln('Divisor: ' ,divi.Coef_To_String());
+   coc.Coef.mostrar('coc');
+   rest.Coef.mostrar('rest: ');
    readln;
 
 END.

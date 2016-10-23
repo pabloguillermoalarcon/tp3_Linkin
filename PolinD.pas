@@ -17,7 +17,7 @@ Type
   Public
          band_A0: boolean; //indica si se visualiza [a0,...,aN]=TRUE; [aN,...,a0]=FALSE
          Masc: integer; //Mascara: guarda la cantidad de decimales para mostrar cuando se convierte con Coef_To_String()
-         constructor Crear(Grado: integer = 5; Mascara: integer=2; Visualizar_A0:boolean = true);
+         constructor Crear(Grado: integer = 5; Mascara: integer=2; Visualizar_A0:boolean = false);
          Property Coef: cls_Vector READ Coeficientes WRITE Coeficientes;
          Property Raices: Cls_Matriz READ Nraices WRITE Nraices;
          procedure Copiar(Polin2: cls_Polin); //pol:= polin2
@@ -26,14 +26,16 @@ Type
          Function Grado(): integer; //Devuelve el grado del polinomio
          Function Coef_To_String(): string; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          //llenar con los metodos
-         function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
-         function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+         function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner Doble
+         function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner
          //ej: Procedure bairstrow(r,s); Tiene que cargar las raices directamente en la matriz Raices
 end;
 
 implementation
+USES
+    sysutils;
 
-Constructor Cls_Polin.Crear(Grado: integer= 5; Mascara: integer= 2; Visualizar_A0: boolean= true);
+Constructor Cls_Polin.Crear(Grado: integer= 5; Mascara: integer= 2; Visualizar_A0: boolean= false);
 Begin
      self.Coeficientes:= Cls_Vector.Crear(Grado+1);
      self.NRaices:= Cls_Matriz.Crear(2,Grado+1);
@@ -60,7 +62,7 @@ begin
      for i:=0 to Coef.N do
          if (coef.cells[i]<>0) then Begin // si el coeficiente es 0 no muestra: 0*X^expo
             if (self.Masc = 0) then
-               STR(abs(coef.cells[i]), coefic)//Convierte de extended a string(coefic)
+               coefic:= FloatToStr(abs(coef.cells[i]))//Convierte de extended a string(coefic)
             else STR(abs(coef.cells[i]):0:self.Masc, coefic);//Convierte de extended a string(coefic)
 
             //Agregar signo +/-
@@ -87,7 +89,7 @@ end else Begin  (*band_A0=FALSE*)
      for i:= Coef.N downto 0 do
          if (coef.cells[i]<>0) then Begin // si el coeficiente es 0 no muestra: 0*X^expo
             if (self.Masc = 0) then
-               STR(abs(coef.cells[i]), coefic)//Convierte de extended a string(coefic)
+               coefic:= FloatToStr(abs(coef.cells[i]))//Convierte de extended a string(coefic)
             else STR(abs(coef.cells[i]):0:self.Masc, coefic);//Convierte de extended a string(coefic)
 
             //Agregar signo +/-

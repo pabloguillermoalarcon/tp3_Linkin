@@ -1,13 +1,16 @@
 object Form2: TForm2
-  Left = 502
+  Left = 308
   Height = 367
-  Top = 211
+  Top = 190
   Width = 660
   BorderIcons = [biMinimize]
   BorderStyle = bsDialog
   Caption = 'Editar Polinomio'
   ClientHeight = 367
   ClientWidth = 660
+  KeyPreview = True
+  OnKeyPress = FormKeyPress
+  Position = poMainFormCenter
   LCLVersion = '1.6.0.4'
   object Matriz_String: TStringGrid
     Left = 8
@@ -16,6 +19,7 @@ object Form2: TForm2
     Top = 8
     Width = 640
     Color = clDefault
+    Flat = True
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goAlwaysShowEditor, goColSpanning, goFixedRowNumbering]
     ParentShowHint = False
     RowCount = 2
@@ -57,7 +61,7 @@ object Form2: TForm2
     TickMarks = tmBoth
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 1
+    TabOrder = 2
   end
   object Aceptar: TButton
     Left = 360
@@ -66,7 +70,7 @@ object Form2: TForm2
     Width = 78
     Caption = 'Aceptar'
     OnClick = AceptarClick
-    TabOrder = 2
+    TabOrder = 1
   end
   object Menos: TButton
     Left = 8
@@ -121,27 +125,28 @@ object Form2: TForm2
     Font.Style = [fsBold, fsItalic]
     ParentColor = False
     ParentFont = False
-    TabOrder = 5
-    object Preview_Label: TLabel
+    TabOrder = 6
+    object Preview_Memo: TMemo
       Left = 8
-      Height = 120
+      Height = 122
+      Hint = '<< Click para editar >>'
       Top = 0
       Width = 616
-      HelpType = htKeyword
-      Anchors = [akTop, akBottom]
-      AutoSize = False
       BorderSpacing.CellAlignHorizontal = ccaCenter
       BorderSpacing.CellAlignVertical = ccaCenter
-      Caption = 'Preview_Label'
-      Color = clDefault
-      Font.Height = -27
+      BorderStyle = bsNone
+      Font.Height = -24
       Font.Name = 'Noto Sans'
-      Font.Style = [fsBold, fsItalic]
-      ParentColor = False
+      Font.Style = [fsBold]
+      Lines.Strings = (
+        'Preview_Memo'
+      )
+      OnMouseWheelDown = Preview_MemoMouseWheelDown
+      OnMouseWheelUp = Preview_MemoMouseWheelUp
       ParentFont = False
-      ParentShowHint = False
-      Transparent = False
-      WordWrap = True
+      ReadOnly = True
+      ScrollBars = ssAutoVertical
+      TabOrder = 0
     end
   end
   object Cancel_Buttom: TButton
@@ -151,6 +156,6 @@ object Form2: TForm2
     Width = 83
     Caption = 'Cancelar'
     OnClick = Cancel_ButtomClick
-    TabOrder = 6
+    TabOrder = 5
   end
 end

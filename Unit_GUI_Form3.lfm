@@ -1,0 +1,166 @@
+object Form3: TForm3
+  Left = 310
+  Height = 533
+  Top = 83
+  Width = 769
+  HorzScrollBar.Page = 1
+  VertScrollBar.Page = 1
+  BorderStyle = bsSingle
+  Caption = 'Division de Polinomios'
+  ClientHeight = 533
+  ClientWidth = 769
+  KeyPreview = True
+  OnKeyPress = FormKeyPress
+  Position = poMainFormCenter
+  LCLVersion = '1.6.0.4'
+  object Pol_N_GroupBox: TGroupBox
+    Left = 0
+    Height = 161
+    Top = 0
+    Width = 768
+    Caption = 'Pol_N'
+    ClientHeight = 127
+    ClientWidth = 764
+    Font.Height = -16
+    Font.Name = 'Noto Sans'
+    Font.Style = [fsBold, fsItalic]
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 0
+    object Pol_N_Memo: TMemo
+      Left = 8
+      Height = 124
+      Hint = '<< Click para editar >>'
+      Top = 0
+      Width = 744
+      BorderSpacing.CellAlignHorizontal = ccaCenter
+      BorderSpacing.CellAlignVertical = ccaCenter
+      BorderStyle = bsNone
+      Font.Height = -24
+      Font.Name = 'Noto Sans'
+      Font.Style = [fsBold]
+      Lines.Strings = (
+        'Preview_Memo'
+      )
+      OnClick = Pol_N_MemoClick
+      ParentFont = False
+      ParentShowHint = False
+      ReadOnly = True
+      ScrollBars = ssAutoVertical
+      ShowHint = True
+      TabOrder = 0
+    end
+  end
+  object Divisor_GroupBox: TGroupBox
+    Left = 1
+    Height = 113
+    Hint = 'Doble Click: Cambiar GRADO'
+    Top = 168
+    Width = 768
+    Caption = 'Divisor'
+    ClientHeight = 79
+    ClientWidth = 764
+    Font.Height = -16
+    Font.Name = 'Noto Sans'
+    Font.Style = [fsBold, fsItalic]
+    ParentColor = False
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
+    OnDblClick = Divisor_GroupBoxDblClick
+    object Divisor_Memo: TMemo
+      Left = 8
+      Height = 80
+      Hint = '<< Click para editar >>'
+      Top = 0
+      Width = 744
+      BorderSpacing.CellAlignHorizontal = ccaCenter
+      BorderSpacing.CellAlignVertical = ccaCenter
+      BorderStyle = bsNone
+      Font.Height = -24
+      Font.Name = 'Noto Sans'
+      Font.Style = [fsBold]
+      Lines.Strings = (
+        'Preview_Memo'
+      )
+      OnClick = Divisor_MemoClick
+      ParentFont = False
+      ParentShowHint = False
+      ReadOnly = True
+      ScrollBars = ssAutoVertical
+      ShowHint = True
+      TabOrder = 0
+    end
+  end
+  object Cociente_GroupBox: TGroupBox
+    Left = 1
+    Height = 113
+    Top = 288
+    Width = 768
+    Caption = 'Cociente'
+    ClientHeight = 79
+    ClientWidth = 764
+    Font.Height = -16
+    Font.Name = 'Noto Sans'
+    Font.Style = [fsBold, fsItalic]
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 2
+    object Cociente_Memo: TMemo
+      Left = 8
+      Height = 80
+      Hint = '<< Click para editar >>'
+      Top = 0
+      Width = 744
+      BorderSpacing.CellAlignHorizontal = ccaCenter
+      BorderSpacing.CellAlignVertical = ccaCenter
+      BorderStyle = bsNone
+      Font.Height = -24
+      Font.Name = 'Noto Sans'
+      Font.Style = [fsBold]
+      Lines.Strings = (
+        'Preview_Memo'
+      )
+      ParentFont = False
+      ReadOnly = True
+      ScrollBars = ssAutoVertical
+      TabOrder = 0
+    end
+  end
+  object Resto_GroupBox: TGroupBox
+    Left = 0
+    Height = 113
+    Top = 408
+    Width = 768
+    Caption = 'Resto'
+    ClientHeight = 79
+    ClientWidth = 764
+    Font.Height = -16
+    Font.Name = 'Noto Sans'
+    Font.Style = [fsBold, fsItalic]
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 3
+    object Resto_Memo: TMemo
+      Left = 8
+      Height = 80
+      Hint = '<< Click para editar >>'
+      Top = 0
+      Width = 744
+      BorderSpacing.CellAlignHorizontal = ccaCenter
+      BorderSpacing.CellAlignVertical = ccaCenter
+      BorderStyle = bsNone
+      Font.Height = -24
+      Font.Name = 'Noto Sans'
+      Font.Style = [fsBold]
+      Lines.Strings = (
+        'Preview_Memo'
+      )
+      ParentFont = False
+      ReadOnly = True
+      ScrollBars = ssAutoVertical
+      TabOrder = 0
+    end
+  end
+end

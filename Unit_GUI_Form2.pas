@@ -13,7 +13,7 @@ USES
     {$IFDEF UNIX}{$IFDEF UseCThreads}
     cthreads, cmem
     {$ENDIF}{$ENDIF}
-    Classes, Forms, Dialogs, StdCtrls, Controls, SysUtils, Grids, ComCtrls,  PolinD;
+    Classes, Forms, Controls, StdCtrls, Grids, ComCtrls,  PolinD, Types;
 
 type
 
@@ -21,18 +21,19 @@ type
 TForm2 = class(TForm)
     Aceptar: TButton;
     Cancel_Buttom: TButton;
+    Preview_Memo: TMemo;
     Preview_GroupBox: TGroupBox;
     Label_Mascara: TLabel;
     Menos: TButton;
     Mas: TButton;
     Matriz_String: TStringGrid;
     Mascara_TrackBar: TTrackBar;
-    Preview_Label: TLabel;
     (*Tipo_Polinomio
     0---> Normal: 0<= Grado N <=10
     1---> Especial Monico Divisor Grado 1: X+a
     2---> Especial Monico Divisor Grado 2: X^2+rX+s  *)
     constructor Crear(Comp: Tcomponent; VAR Pol: cls_Polin; Tipo_Polinomio: byte);
+    procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure MasClick(Sender: TObject);
     procedure Matriz_StringEditingDone(Sender: TObject);
     procedure MenosClick(Sender: TObject);
@@ -44,6 +45,10 @@ TForm2 = class(TForm)
     Procedure Load_Matriz(); //Carga coefic de Polin en Matriz_Grid
     Procedure Load_Coef(VAR Pol: cls_Polin);
     procedure Mascara_TrackBarChange(Sender: TObject);
+    procedure Preview_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure Preview_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
     Function Valida(col: integer): boolean; //Revisa una celda de la matriz[col,1] valida la conversion a extended
     Procedure Preview(); //Revisa todas las celdas y devuelve el resultado sobre preview_Label y avisa si hay Errores si es FALSE
     Function Preview_Aceptar(): Boolean; //Revisa todas las celdas y devuelve el resultado sobre preview_Label y avisa si hay Errores si es FALSE
@@ -63,9 +68,6 @@ TForm2 = class(TForm)
      al Menos un coeficiente para un polinomio de Grado 0*)
      MAX_COL: integer;//= 12;
      MIN_COL: integer;//= 2;
-     (*Limites Cantidad de digitos decimal a mostrar *)
-     MAX_Masc: integer;//=11;
-     MIN_Masc: integer; //=0;
 end;
 
 var
@@ -73,6 +75,8 @@ var
 
 implementation
 {$R *.lfm}
+USES
+    SysUtils, Dialogs, Unit_GUI;
 (*Tipo_Polinomio
 0---> Normal: 0<= Grado N <=10
 1---> Especial Monico Divisor Grado 1: X+a
@@ -87,11 +91,18 @@ Begin
      self.Preview_GroupBox.Caption:='Vista Previa';
      self.Esta_Correcto:= FALSE;
      self.Load_Matriz();
+     (*Limites Cantidad de digitos decimal a mostrar *)
+     self.Mascara_TrackBar.Max:= Form1.MAX_MASC;
+     self.Mascara_TrackBar.Min:= Form1.MIN_MASC;
      MAX_COL:= 12;
      MIN_COL:= 2;
-     (*Limites Cantidad de digitos decimal a mostrar *)
-     MAX_Masc:= 11;
-     MIN_Masc:= 0;
+end;
+
+procedure TForm2.FormKeyPress(Sender: TObject; var Key: char);
+begin
+     // #27 --> Tecla Escape
+     if (key = #27) then
+        self.ModalResult:= mrCancel;
 end;
 
 //Se asume q Pol esta creado
@@ -102,9 +113,9 @@ Begin
      self.Matriz_String.ColCount:= Polin.Grado()+2;
      self.Mascara_TrackBar.Position:= Polin.Masc;
      self.Ban_CoefA0:= Polin.band_A0;
-     self.Preview_Label.Caption:= Polin.Coef_To_String();
+     self.Preview_Memo.Lines.Text:= Polin.Coef_To_String();
 
-     if ((Polin.Masc=0) or (Polin.Masc=11)) then self.Label_mascara.Caption:= 'Sin Mascara'
+     if ((Polin.Masc=0) or (Polin.Masc=11)) then self.Label_mascara.Caption:= 'Optima'
      else self.Label_mascara.Caption:= 'Mascara: ' + IntToStr(Polin.Masc);
      case (Tipo_Polin) of
              0: self.Caption:= 'Editar Polinomio << Grado '+IntToStr(Polin.Grado())+' >>'; //Normal: 0<= Grado N <=10, Por Defecto Grado 3 (creacion de uno nuevo)
@@ -138,7 +149,7 @@ Begin
      if (Pol=nil) then Pol:= cls_Polin.Crear(Matriz_String.ColCount-2)
      else Pol.Redimensionar(Matriz_String.ColCount-2);
      Pol.band_A0:= self.Ban_CoefA0;
-     if ((self.Mascara_TrackBar.Position= self.MIN_Masc) or (self.Mascara_TrackBar.Position= 11{self.MAX_Masc})) then
+     if ((Mascara_TrackBar.Position= Mascara_TrackBar.Min) or (self.Mascara_TrackBar.Position= self.Mascara_TrackBar.Max)) then
         Pol.Masc:= 0
      else Pol.Masc:= self.Mascara_TrackBar.Position;
      if Pol.band_A0 then Begin
@@ -174,6 +185,7 @@ begin
         Caption:= 'Editar Polinomio << Grado ' + IntToStr(Matriz_String.ColCount-2) + ' >>'; //titulo ventana
      end
      else showmessage('No se pueden eliminar mas coeficientes (cant = '+ IntToStr(Matriz_String.ColCount -1)+')');
+     self.Preview();
 end;
 
 procedure TForm2.MasClick(Sender: TObject);
@@ -200,6 +212,7 @@ begin
         Caption:= 'Editar Polinomio << Grado ' + IntToStr(Matriz_String.ColCount-2) + ' >>'; //titulo ventana
      end
      else showmessage('No se pueden agregar mas coeficientes (cant = '+ IntToStr(Matriz_String.ColCount -1)+')');
+     self.Preview();
 end;
 
 procedure TForm2.Matriz_StringEditingDone(Sender: TObject);
@@ -249,31 +262,31 @@ Begin
      if (not Es_Correcto) then Begin
      //Indicar el primer coeficiente que hay q corregir...
         if (self.Ban_CoefA0) then
-           self.Preview_Label.Caption:= 'Error en coef: a' + IntToStr(i -2)
-        else self.Preview_Label.Caption:= 'Error en coef: a' +IntToStr(Matriz_String.Colcount -i);
+           self.Preview_Memo.Lines.Text:= 'Error en coef: a' + IntToStr(i -2)
+        else self.Preview_Memo.Lines.Text:= 'Error en coef: a' +IntToStr(Matriz_String.Colcount -i);
      end else Begin //Es_Correcto=TRUE: ahora reviso si el coeficiente del grado Mayor es <> 0 0 sii = 1 por ser monico
               if (self.Ban_CoefA0) then Begin //preview [a0...aN]
                  if ((self.Tipo_Polin=1) or (Tipo_Polin=2)) then Begin
                      if (StrToFloat(Matriz_String.cells[Matriz_String.ColCount -1,1]) <> 1) then Begin
-                        self.Preview_Label.Caption:= 'Coef: a' +IntToStr(Matriz_String.ColCount -2) + ' tiene que ser 1, porque el polinomio es monico';
+                        self.Preview_Memo.Lines.Text:= 'Coef: a' +IntToStr(Matriz_String.ColCount -2) + ' tiene que ser 1, porque el polinomio es monico';
                         Matriz_string.Cells[Matriz_String.ColCount-1,1]:= '1';
                         Es_Correcto:= FALSE;
                      end;
                  end else
                          if (StrToFloat(Matriz_String.cells[Matriz_String.ColCount -1,1]) = 0) then Begin
-                            self.Preview_Label.Caption:= 'Coef: a' + IntToStr(Matriz_String.ColCount -2)+ ' tiene que ser distinto de 0';
+                            self.Preview_Memo.Lines.Text:= 'Coef: a' + IntToStr(Matriz_String.ColCount -2)+ ' tiene que ser distinto de 0';
                             Es_Correcto:= FALSE;
                          end;
               end else Begin //preview [aN...a0]
                              if ((self.Tipo_Polin=1) or (Tipo_Polin=2)) then Begin
                                 if (StrToFloat(Matriz_String.cells[1,1]) <> 1) then Begin
-                                   self.Preview_Label.Caption:= 'Coef: a' +IntToStr(Matriz_String.ColCount -2) + ' tiene que ser 1, porque el polinomio es monico';
+                                   self.Preview_Memo.Lines.Text:= 'Coef: a' +IntToStr(Matriz_String.ColCount -2) + ' tiene que ser 1, porque el polinomio es monico';
                                    Matriz_string.Cells[1,1]:= '1';
                                    Es_Correcto:= FALSE;
                                 end;
                              end else
                                      if (StrToFloat(Matriz_String.cells[1,1]) = 0) then Begin
-                                        self.Preview_Label.Caption:= 'Coef: a' +IntToStr(Matriz_String.ColCount -2) + ' tiene que ser distinto de 0';
+                                        self.Preview_Memo.Lines.Text:= 'Coef: a' +IntToStr(Matriz_String.ColCount -2) + ' tiene que ser distinto de 0';
                                         Es_Correcto:= FALSE;
                                      end;
               end;
@@ -300,19 +313,18 @@ Begin
               end;
            inc(i);
      end;
-
      if (not Es_Correcto) then Begin
      //Indicar el primer coeficiente que hay q corregir...
         if (self.Ban_CoefA0) then
-           self.Preview_Label.Caption:= 'Error en coef: a' + IntToStr(i -2)
-        else self.Preview_Label.Caption:= 'Error en coef: a' +IntToStr(Matriz_String.Colcount -i);
+           self.Preview_Memo.Lines.Text:= 'Error en coef: a' + IntToStr(i -2)
+        else self.Preview_Memo.Lines.Text:= 'Error en coef: a' +IntToStr(Matriz_String.Colcount -i);
      end else Begin //Es_Correcto=TRUE: ahora reviso si el coeficiente del grado Mayor es <> 0
          self.Load_Coef(Pol);
          Pol.band_A0:= self.Ban_CoefA0;
-         if ((self.Mascara_TrackBar.Position=self.MIN_Masc) or (self.Mascara_TrackBar.Position=self.MAX_Masc)) then
+         if ((Mascara_TrackBar.Position= Mascara_TrackBar.Min) or (Mascara_TrackBar.Position= Mascara_TrackBar.Max)) then
             Pol.Masc:= 0
          else Pol.Masc:= self.Mascara_TrackBar.Position;
-         self.Preview_Label.Caption:= Pol.Coef_To_String();
+         self.Preview_Memo.Lines.Text:= Pol.Coef_To_String();
      end;
      Pol.Destroy();
 end;
@@ -328,15 +340,36 @@ end;
 
 procedure TForm2.Cancel_ButtomClick(Sender: TObject);
 begin
-     Close;
+     Form2.ModalResult:= MrCancel;
 end;
 
 procedure TForm2.Mascara_TrackBarChange(Sender: TObject);
 begin
-      if ((Mascara_TrackBar.Position = MIN_Masc) or (Mascara_TrackBar.Position = MAX_Masc)) then
-         Label_mascara.Caption:='Sin Mascara...'
+      if ((Mascara_TrackBar.Position = Mascara_TrackBar.Min) or (Mascara_TrackBar.Position = Mascara_TrackBar.Max)) then
+         Label_mascara.Caption:='Optima'
       else Label_mascara.Caption:='Mascara: '+intToStr(Mascara_TrackBar.Position);
       self.Preview();
+end;
+
+procedure TForm2.Preview_MemoMouseWheelDown(Sender: TObject;
+  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+begin
+     If (Polin.Masc > self.Mascara_TrackBar.Min) then Begin
+         Polin.Masc:= Polin.Masc -1
+     end else Polin.Masc:= self.Mascara_TrackBar.Max -1;
+     Mascara_TrackBar.Position:= Polin.Masc;
+     self.Preview();
+end;
+
+procedure TForm2.Preview_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+     If (Polin.Masc < self.Mascara_TrackBar.Max) then Begin
+         Polin.Masc:= Polin.Masc +1;
+         Mascara_TrackBar.Position:= Polin.Masc;
+         if Polin.Masc=self.Mascara_TrackBar.Max then Polin.Masc:= 0;
+         self.Preview();
+     end;
 end;
 
 procedure TForm2.Invertir_Matriz; //cambia [AN,...,A0] ---> [A0,...,AN]
