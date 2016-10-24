@@ -28,7 +28,10 @@ Type
          //llenar con los metodos
          function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner Doble
          function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner
-         //ej: Procedure bairstrow(r,s); Tiene que cargar las raices directamente en la matriz Raices
+         function determinante():extended;
+         procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
+         procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD
+         procedure bairstow(error:extended; r:extended; s:extended; max_iter:integer);
 end;
 
 implementation
@@ -181,6 +184,140 @@ begin
 	end
 	else
     	result:=false;
+end;
+
+procedure Cls_Polin.horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);
+var
+    aux:cls_polin;
+    m,i:integer;
+begin
+    m:=self.Grado();
+    aux.Crear(m,2,false);
+    aux.Copiar(self);
+    b.Redimensionar(self.Grado());
+    c.Redimensionar(self.Grado());
+    b.Coef.Limpia(0);
+    c.Coef.Limpia(0);
+    b.Coef.cells[m]:=aux.Coef.cells[m];
+    b.Coef.cells[m-1]:=aux.coef.cells[m-1]+r*b.Coef.cells[m];
+    c.Coef.cells[m]:=b.Coef.cells[m];
+    c.Coef.cells[m-1]:=b.coef.cells[m-1]+s*c.Coef.cells[m];
+
+    for i:=m-2 downto 0 do
+        begin
+            b.Coef.cells[i]:=aux.Coef.cells[i]+r*b.Coef.cells[i+1]+s*b.Coef.cells[i+2];
+            c.Coef.cells[i]:=b.Coef.cells[i]+r*c.Coef.cells[i+1]+s*c.Coef.cells[i+2];
+        end;
+end;
+
+function cls_polin.determinante():extended;
+
+begin
+    result:=self.Coef.cells[2]*self.Coef.cells[2]-self.Coef.cells[3]*self.Coef.cells[1];
+end;
+
+procedure cls_polin.cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
+
+var
+    disc:extended;
+begin
+    disc:=r*r-4*s;
+    if disc >= 0 then
+        begin
+            r1:=(r+Sqrt(disc))/2;
+            i1:=0;
+            r2:=(r-Sqrt(disc))/2;
+            i2:=0;
+        end
+    else
+        begin
+            r1:=r/2;
+            r2:=r/2;
+            i1:=Sqrt(abs(disc))/2;
+            i2:=-i1;
+        end;
+end;
+
+procedure Cls_Polin.bairstow(error:extended; r:extended; s:extended; max_iter:integer);
+
+var
+    a:cls_polin;
+    b:cls_polin;
+    c:cls_polin;
+    err_a1:extended;
+    err_a2:extended;
+    det:extended;
+    dr:extended;
+    ds:extended;
+    iter:integer;
+    r1:extended;
+    i1:extended;
+    r2:extended;
+    i2:extended;
+    i:integer;
+
+begin
+    a.Crear(self.Grado(),2,false);
+    b.Crear(self.Grado(),2,false);
+    c.Crear(self.Grado(),2,false);
+    a.Copiar(self);
+    err_a1:=1;
+    err_a2:=2;
+    iter:=0;
+    while ((a.Grado()>2)and(iter<max_iter))do
+        begin
+            iter:=0;
+            repeat
+                begin
+                    iter:=iter+1;
+                    a.horner_doble(b,c,r,s);
+                    det:=c.determinante();
+                    if det<>0 then
+                        begin
+                            dr:=(-b.Coef.cells[1]*c.Coef.cells[2]+b.Coef.cells[0]*c.Coef.cells[3])/det;
+                            ds:=(-b.Coef.cells[0]*c.Coef.cells[2]+b.Coef.cells[1]*c.Coef.cells[1])/det;
+                            r:=r+dr;
+                            s:=s+ds;
+                            if r<>0 then
+                                err_a1:=abs(dr/r)*100;
+                            if s<>0 then
+                                err_a2:=abs(ds/s)*100;
+                        end
+                    else
+                        begin
+                            r:=r+1;
+                            s:=s+1;
+                            iter:=0;
+                        end;
+                end;
+            until (((err_a1<=error)and(err_a2<=error))or(iter<max_iter));
+            self.cuadratica(r,s,r1,i1,r2,i2);
+            self.Nraices.cells[0,a.Grado()]:=r1;
+            self.Nraices.cells[1,a.Grado()]:=i1;
+            self.Nraices.cells[0,a.Grado()-1]:=r2;
+            self.Nraices.cells[1,a.Grado()-1]:=i2;
+            for i:=0 to a.Grado()-2 do;
+                a.Coef.cells[i]:=b.Coef.cells[i+2];
+            a.Redimensionar(a.Grado()-2);
+        end;
+    if iter<max_iter then
+        begin
+           if a.Grado()=2 then
+               begin
+                   r:=-a.Coef.cells[1]/a.Coef.cells[2];
+                   s:=-a.Coef.cells[0]/a.Coef.cells[2];
+                   self.cuadratica(r,s,r1,i1,r2,i2);
+                   self.Nraices.cells[0,a.Grado()]:=r1;
+                    self.Nraices.cells[1,a.Grado()]:=i1;
+                    self.Nraices.cells[0,a.Grado()-1]:=r2;
+                    self.Nraices.cells[1,a.Grado()-1]:=i2;
+               end
+           else
+               begin
+                   self.Nraices.cells[0,a.Grado()]:=-a.Coef.cells[0]/a.Coef.cells[1];
+                   self.Nraices.cells[1,a.Grado()]:=0;
+               end;
+        end;
 end;
 
 BEGIN
