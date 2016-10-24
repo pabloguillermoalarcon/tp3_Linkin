@@ -216,14 +216,15 @@ begin
     	result:=false;
 end;
 
-Procedure ruffiniEvaluador(A: Cls_Vector;var B: Cls_Vector; X: double);   // A es el vector con los coeficientes del polinomio ingresado
+Procedure ruffiniEvaluador(A: Cls_Vector;var B: Cls_Vector; X: extended);   // A es el vector con los coeficientes del polinomio ingresado
 var                                                                       // en el vector B guardamos la solucion del  metodo de Ruffini lo que seria C(x)y resto
   k:byte;
 begin
   B.cells[0]:= A.cells[0];
   For k:= 1 to A.N do
       B.cells[k]:= A.cells[k]+ (B.cells[k-1]*X);
-end;
+  B.N:=k;
+end;  
 //Funcion que Evalua un polinomio
 Function EvaluarPolinomio(P: Cls_Vector; X: double): double;
 var B:Cls_Vector;
@@ -261,7 +262,7 @@ begin
   for i:=0 to C.N do
     begin
       ult:=ult+1;
-      P.cells[ult]:=P.cells[i]*(-1);
+      C.cells[ult]:=C.cells[i]*-1;
     end;
   C.N:=ult;
 end;
