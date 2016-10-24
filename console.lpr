@@ -42,8 +42,9 @@ N5: PolinD basicamente es un vector dinamico de extended
    pol_N.Coef.cells[1]:= 5;
    pol_N.Coef.cells[0]:= -26;
 
-   //Pol_N.bairstow(0.001,0,0,100);
    Pol_N.Raices.Limpia(4);
+   Pol_N.Raices.cells[0,0]:= -4;//Pol_N.bairstow(0.001,0,0,100);
+   Pol_N.Raices.Mostrar('Raices');
    Writeln('Raices Bairstow: ',Pol_N.Raices_To_String());
    readln;
 END.

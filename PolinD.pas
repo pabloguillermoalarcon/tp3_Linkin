@@ -48,7 +48,7 @@ USES
 Constructor Cls_Polin.Crear(Grado: integer= 5; Mascara: integer= 0; Visualizar_A0: boolean= false);
 Begin
      self.Coeficientes:= Cls_Vector.Crear(Grado+1);
-     self.NRaices:= Cls_Matriz.Crear(2,Grado+1);
+     self.NRaices:= Cls_Matriz.Crear(2,Grado);
      self.Masc:= Mascara; // si es 0 muestra todos los digitos decimales
      self.Band_A0:= Visualizar_A0;
 end;
