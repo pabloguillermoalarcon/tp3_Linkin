@@ -7,9 +7,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, Unit_GUI;
-
 {$R *.res}
-
 begin
   RequireDerivedFormResource:=True;
   Application.Initialize;

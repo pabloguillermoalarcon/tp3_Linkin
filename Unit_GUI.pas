@@ -158,9 +158,10 @@ procedure TForm1.Raices_Enteras_ItemClick(Sender: TObject);
 Var
   enteras: cls_Vector;
 begin
-     enteras:= Cls_Vector.Crear(pol_n.Grado());
-     Pol_N.raicesEnteras(Pol_N.Coef,enteras);
-     showmessage('Posibles Raices Enteras' + enteras.ToString());
+     enteras:= Cls_Vector.Crear();
+     //Pol_N.raicesEnteras(Pol_N.Coef,enteras);
+     Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,enteras);
+     showmessage('Posibles Raices Enteras: ' + enteras.ToString());
      enteras.Destroy;
 end;
 

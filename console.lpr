@@ -36,26 +36,14 @@ N5: PolinD basicamente es un vector dinamico de extended
   //ShowMessage('Leer README.md para ver la propuesta de codigo, cualquier sugerencia manden al grupo de whatsapp');
 
    pol_N:= cls_Polin.Crear(4);
-   divi:= cls_Polin.Crear(1);
-   coc:= cls_Polin.Crear(3);
-   rest:= cls_Polin.Crear(0);
+   pol_N.Coef.cells[4]:= 1;
+   pol_N.Coef.cells[3]:= 5;
+   pol_N.Coef.cells[2]:= 15;
+   pol_N.Coef.cells[1]:= 5;
+   pol_N.Coef.cells[0]:= -26;
 
-   divi.Coef.cells[1]:= 1;
-   divi.Coef.cells[0]:= 1;
-
-   pol_N.Coef.cells[4]:= 3;
-   pol_N.Coef.cells[3]:= 2;
-   pol_N.Coef.cells[2]:= 1;
-   pol_N.Coef.cells[1]:= 1;
-   pol_N.Coef.cells[0]:= 1;
-
-   V:= cls_Vector.crear(2); V.limpia(9);
-   V2:= cls_Vector.crear(3);
-   V2.cells[0]:=1;
-   V2.cells[1]:=0;
-   V2.cells[2]:=-1;
-   Pol_N.raicesEnteras(V2,V);
-   V2.mostrar('V2 coefic');
-   V.mostrar('<<V enteras>>');
+   //Pol_N.bairstow(0.001,0,0,100);
+   Pol_N.Raices.Limpia(4);
+   Writeln('Raices Bairstow: ',Pol_N.Raices_To_String());
    readln;
 END.

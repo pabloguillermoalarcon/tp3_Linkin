@@ -21,15 +21,16 @@ Type
          constructor Crear(Grado: integer = 5; Mascara: integer=0; Visualizar_A0:boolean = false);
          Property Coef: cls_Vector READ Coeficientes WRITE Coeficientes;
          Property Raices: Cls_Matriz READ Nraices WRITE Nraices;
-         procedure Copiar(Polin2: cls_Polin); //pol:= polin2
-         Procedure Redimensionar(Grado: integer);
-         procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Grado(): integer; //Devuelve el grado del polinomio
+         Procedure Redimensionar(Grad: integer);
+         procedure Copiar(Polin2: cls_Polin); //pol:= polin2
+         procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
-         //llenar con los metodos
+         Function Raices_To_String(): String;
          function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner Doble
          function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner
-         //ej: Procedure bairstrow(r,s); Tiene que cargar las raices directamente en la matriz Raices
+         procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
+         procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
          procedure raicesEnteras(P:Cls_Vector; var B:Cls_Vector);//Devuelve todas las raices enteras de un polinomio,en caso de no tener raices preguntar si B.N=-1
          procedure raicesRacionales(Pol:Cls_Vector; var RR:Cls_Vector);//Devuelve todas las racices racionales de un polinomio,en caso de no tener raices preguntar si B.N=0
          procedure Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
@@ -52,7 +53,7 @@ Begin
      self.Band_A0:= Visualizar_A0;
 end;
 
-Procedure cls_Polin.Redimensionar(Grado: integer);
+Procedure cls_Polin.Redimensionar(Grad: integer);
 Begin
      self.Coef.Redimensionar(Grado+1);
      self.NRaices.Redimensionar(2,Grado+1);
@@ -253,7 +254,8 @@ begin
     end;
   Vec.N:=j;
 end;
-procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
+
+procedure Cls_Polin.PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
 var ult,i:byte;
 begin
   detDivPos(trunc(P.cells[P.N]),C);
@@ -282,7 +284,7 @@ begin
   B.N:=j-1;
   C.destroy();
 end;
-procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
+procedure Cls_Polin.PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
 var
   i,j,k:byte;
   DTI,DTP:Cls_Vector;
@@ -660,6 +662,22 @@ begin
                    self.Nraices.cells[1,a.Grado()]:=0;
                end;
         end;
+end;
+
+Function cls_Polin.Raices_To_String(): String;
+Var
+    cad, real, imag: String;
+    i: integer;
+Begin
+    for i:=0 to Grado do Begin
+       if (Raices.cells[0,i] <>0) then //Parte Real
+          cad:= cad + '  '+FloatToStr(Raices.cells[0,i]);
+       if (Raices.cells[1,i] <>0) then //Parte Imag
+           if Raices.cells[1,i]>0 then
+               cad:= cad + '+'+FloatToStr(Raices.cells[1,i])+'i'
+            else cad:= cad + FloatToStr(Raices.cells[1,i])+'i';
+    end;
+    Result:= cad;
 end;
 
 BEGIN
