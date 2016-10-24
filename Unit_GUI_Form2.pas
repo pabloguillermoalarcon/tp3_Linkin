@@ -321,9 +321,7 @@ Begin
      end else Begin //Es_Correcto=TRUE: ahora reviso si el coeficiente del grado Mayor es <> 0
          self.Load_Coef(Pol);
          Pol.band_A0:= self.Ban_CoefA0;
-         if ((Mascara_TrackBar.Position= Mascara_TrackBar.Min) or (Mascara_TrackBar.Position= Mascara_TrackBar.Max)) then
-            Pol.Masc:= 0
-         else Pol.Masc:= self.Mascara_TrackBar.Position;
+         Pol.Masc:= self.Mascara_TrackBar.Position;
          self.Preview_Memo.Lines.Text:= Pol.Coef_To_String();
      end;
      Pol.Destroy();
@@ -345,31 +343,31 @@ end;
 
 procedure TForm2.Mascara_TrackBarChange(Sender: TObject);
 begin
-      if ((Mascara_TrackBar.Position = Mascara_TrackBar.Min) or (Mascara_TrackBar.Position = Mascara_TrackBar.Max)) then
-         Label_mascara.Caption:='Optima'
-      else Label_mascara.Caption:='Mascara: '+intToStr(Mascara_TrackBar.Position);
-      self.Preview();
+     case Mascara_TrackBar.Position of
+     0: Label_mascara.Caption:='Optima';
+     11: Label_mascara.Caption:='Sin Mascara';
+     else
+         Label_mascara.Caption:='Mascara: '+intToStr(Mascara_TrackBar.Position);
+     end;
+     self.Preview();
 end;
 
 procedure TForm2.Preview_MemoMouseWheelDown(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
 begin
-     If (Polin.Masc > self.Mascara_TrackBar.Min) then Begin
-         Polin.Masc:= Polin.Masc -1
-     end else Polin.Masc:= self.Mascara_TrackBar.Max -1;
-     Mascara_TrackBar.Position:= Polin.Masc;
+     If (self.Mascara_TrackBar.Position > self.Mascara_TrackBar.Min) then
+         self.Mascara_TrackBar.Position:= self.Mascara_TrackBar.Position -1
+     else self.Mascara_TrackBar.Position:= self.Mascara_TrackBar.Max;
      self.Preview();
 end;
 
 procedure TForm2.Preview_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
-     If (Polin.Masc < self.Mascara_TrackBar.Max) then Begin
-         Polin.Masc:= Polin.Masc +1;
-         Mascara_TrackBar.Position:= Polin.Masc;
-         if Polin.Masc=self.Mascara_TrackBar.Max then Polin.Masc:= 0;
-         self.Preview();
-     end;
+     If (self.Mascara_TrackBar.Position < self.Mascara_TrackBar.Max) then
+        self.Mascara_TrackBar.Position:= self.Mascara_TrackBar.Position +1
+     else self.Mascara_TrackBar.Position:= self.Mascara_TrackBar.Min;
+     self.Preview();
 end;
 
 procedure TForm2.Invertir_Matriz; //cambia [AN,...,A0] ---> [A0,...,AN]

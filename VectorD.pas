@@ -78,6 +78,7 @@ Cls_Vector = class
         //Se pueden usar Para sumar o restar (usando Opuesto)
         Procedure Suma(VecA, VecB : Cls_Vector); //Vec:= VecA + VecB;
         Procedure Suma(VecX: Cls_Vector); //Vec:= Vec + VecX;
+        Function ToString(mascara: byte = 0):String;
   end;
 
 
@@ -266,6 +267,32 @@ begin
      for i:=0 to N do
                 cells[i]:= cells[i] + vecX.cells[i];
      end else writeln('cls_Vector: Error Suma :Los vectores son de distinto tam.');
+end;
+
+Function Cls_Vector.ToString(mascara: byte = 0):String;
+Var
+     i: integer;
+     cad,aux: string;
+Begin
+     case mascara of
+     0: Begin
+             for i:=0 to N do
+                 cad:= cad + ' ' + FloatToStr(cells[i]);
+     end;
+     11: Begin
+             for i:=0 to N do Begin
+                 STR(cells[i],aux);
+                 cad:= cad + ' ' +aux;
+             end;
+     end;
+     else Begin
+             for i:=0 to N do Begin
+                 STR(cells[i]:0:Mascara, aux);
+                 cad:= cad + ' ' + aux;
+             end;
+     end;
+     end; //case
+     RESULT:= cad;
 end;
 
 //efectua la suma componente a componente

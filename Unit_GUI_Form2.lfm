@@ -1,7 +1,7 @@
 object Form2: TForm2
-  Left = 308
+  Left = 372
   Height = 367
-  Top = 190
+  Top = 181
   Width = 660
   BorderIcons = [biMinimize]
   BorderStyle = bsDialog
@@ -58,7 +58,7 @@ object Form2: TForm2
     PageSize = 1
     Position = 2
     ShowSelRange = False
-    TickMarks = tmBoth
+    TickMarks = tmTopLeft
     ParentShowHint = False
     ShowHint = True
     TabOrder = 2

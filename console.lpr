@@ -5,7 +5,7 @@ USES
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads, cmem
   {$ENDIF}{$ENDIF}
-  PolinD, VectorD, MatrizD, Interfaces, Dialogs;
+  PolinD, VectorD, MatrizD, Interfaces, Dialogs, sysutils;
 
 VAR
     M,M2,M3: cls_Matriz;
@@ -49,11 +49,13 @@ N5: PolinD basicamente es un vector dinamico de extended
    pol_N.Coef.cells[1]:= 1;
    pol_N.Coef.cells[0]:= 1;
 
-   Pol_N.ruffini(divi,coc,rest);
-   writeln('Pol: ', Pol_N.Coef_To_String());
-   writeln('Divisor: ' ,divi.Coef_To_String());
-   coc.Coef.mostrar('coc');
-   rest.Coef.mostrar('rest: ');
+   V:= cls_Vector.crear(2); V.limpia(9);
+   V2:= cls_Vector.crear(3);
+   V2.cells[0]:=1;
+   V2.cells[1]:=0;
+   V2.cells[2]:=-1;
+   Pol_N.raicesEnteras(V2,V);
+   V2.mostrar('V2 coefic');
+   V.mostrar('<<V enteras>>');
    readln;
-
 END.

@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 403
+  Left = 332
   Height = 391
-  Top = 226
+  Top = 181
   Width = 771
   BorderStyle = bsSingle
   Caption = 'Tp3 - Linkin'
@@ -84,6 +84,7 @@ object Form1: TForm1
       Caption = 'Raices'
       object Raices_Enteras_Item: TMenuItem
         Caption = 'Posibles Enteras'
+        OnClick = Raices_Enteras_ItemClick
       end
       object Raices_Racionales_Item: TMenuItem
         Caption = 'Posibles Racionales'

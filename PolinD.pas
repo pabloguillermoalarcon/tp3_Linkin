@@ -14,28 +14,33 @@ Type
   Private
          Coeficientes: cls_Vector; // vector de Coeficientes [Ao,...,An]
          Nraices: cls_Matriz; //Matriz de 2 x N para las raices, Parte Real y Parte Im
+         Function SuperScript(indice: integer): AnsiString;
   Public
          band_A0: boolean; //indica si se visualiza [a0,...,aN]=TRUE; [aN,...,a0]=FALSE
          Masc: integer; //Mascara: guarda la cantidad de decimales para mostrar cuando se convierte con Coef_To_String()
-         constructor Crear(Grado: integer = 5; Mascara: integer=2; Visualizar_A0:boolean = false);
+         constructor Crear(Grado: integer = 5; Mascara: integer=0; Visualizar_A0:boolean = false);
          Property Coef: cls_Vector READ Coeficientes WRITE Coeficientes;
          Property Raices: Cls_Matriz READ Nraices WRITE Nraices;
          procedure Copiar(Polin2: cls_Polin); //pol:= polin2
          Procedure Redimensionar(Grado: integer);
          procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Grado(): integer; //Devuelve el grado del polinomio
-         Function Coef_To_String(): string; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
+         Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          //llenar con los metodos
          function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner Doble
          function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner
          //ej: Procedure bairstrow(r,s); Tiene que cargar las raices directamente en la matriz Raices
+         procedure raicesEnteras(P:Cls_Vector; var B:Cls_Vector);//Devuelve todas las raices enteras de un polinomio,en caso de no tener raices preguntar si B.N=-1
+         procedure raicesRacionales(Pol:Cls_Vector; var RR:Cls_Vector);//Devuelve todas las racices racionales de un polinomio,en caso de no tener raices preguntar si B.N=0
+         procedure Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
+         procedure Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
 end;
 
 implementation
 USES
     sysutils;
 
-Constructor Cls_Polin.Crear(Grado: integer= 5; Mascara: integer= 2; Visualizar_A0: boolean= false);
+Constructor Cls_Polin.Crear(Grado: integer= 5; Mascara: integer= 0; Visualizar_A0: boolean= false);
 Begin
      self.Coeficientes:= Cls_Vector.Crear(Grado+1);
      self.NRaices:= Cls_Matriz.Crear(2,Grado+1);
@@ -49,69 +54,93 @@ Begin
      self.NRaices.Redimensionar(2,Grado+1);
 end;
 
+Function cls_Polin.SuperScript(indice: integer): AnsiString;
+Begin
+     case (indice) of
+          2: RESULT:= '²';
+          3: RESULT:= '³';
+          4: RESULT:= '⁴';
+          5: RESULT:= '⁵';
+          6: RESULT:= '⁶';
+          7: RESULT:= '⁷';
+          8: RESULT:= '⁸';
+          9: RESULT:= '⁹';
+          10: RESULT:= '¹⁰';
+          else RESULT:='';
+     end;
+end;
+
 //si las mascara es 0 muestra todos los digitos
 //comienza a mostrar de X^0...X^N
-function cls_Polin.coef_To_String():string;
+function cls_Polin.coef_To_String():AnsiString;
 Var
-   cad, expo, coefic: string;
+   cad, expo, coefic,signo: AnsiString;
    i: integer;
+   primer_signo: boolean;
 begin
      if (band_A0) then Begin;
 {[1,1,2,0] N=3;--->1+X+2*X^2+0*X^3
 [0,0,2,0] N=3;---> 2*X^2}
+     primer_signo:= True;
      for i:=0 to Coef.N do
          if (coef.cells[i]<>0) then Begin // si el coeficiente es 0 no muestra: 0*X^expo
-            if (self.Masc = 0) then
-               coefic:= FloatToStr(abs(coef.cells[i]))//Convierte de extended a string(coefic)
-            else STR(abs(coef.cells[i]):0:self.Masc, coefic);//Convierte de extended a string(coefic)
-
+            case Masc of
+                 0: coefic:= FloatToStr(abs(coef.cells[i])); //Muestra solo los caracteres usados 1.0000--> 1
+                 11: STR(abs(coef.cells[i]), coefic); //Muestra Todos
+                 else STR(abs(coef.cells[i]):0:self.Masc, coefic);  // Muestra con Mascara
+            end;
             //Agregar signo +/-
+            signo:='';
             if (coef.cells[i]> 0) then begin //coef <>0 y positivo
-               if (0<i) then coefic:=' + ' + coefic; //si es el primero no agrega un signo (+)
-            end else if (0<i) then coefic:=' - '+coefic //coef <>0 y negativo
-                 else coefic:='- '; //signo(-) sin espacio al comienzo
-
+               if (not primer_signo) then
+                  signo:=' + ' //si es el primero no agrega un signo (+)
+               else primer_signo:= False;
+            end else Begin
+                     if (not primer_signo) then
+                        signo:=' - '//coef <>0 y negativo
+                     else Begin
+                               signo:='- '; //signo(-) sin espacio al comienzo
+                               Primer_signo:= False;
+                     end;
+                     DELETE(coefic,0,1); //Elimino el sigo repetido de coefic y solo queda en vble signo
+            end;
             case (i) of
-                 0: cad:= coefic; //coef*X^0 --->coef
-                 1: Begin
-                         if (self.Coef.cells[i] = 1) then cad:= cad+'+ X'
-                         else cad:= cad + coefic + '*X'; //coef*X^1 --->coef*X
-                 end else begin //coef*X^i
-                          STR(i,expo);
-                          if (self.Coef.cells[i] = 1) then cad:= cad + '+ X^'+expo
-                          else cad:= cad + coefic+'*X^'+expo;
+                 0: cad:= signo + coefic; //coef*X^0 --->coef
+                 else Begin
+                      expo:= SuperScript(i);//Superindice
+                         if ((((self.Coef.cells[i]= 1) or (self.Coef.cells[i]= -1)) and (masc=0))) then cad:= cad+signo+'x'+expo
+                         else cad:= cad + signo + coefic + 'x' + expo;
                  end;
-            end;//end case
+            end;//Case
          end; // si el coeficiente es 0 no muestra: 0*X^expo
 end else Begin  (*band_A0=FALSE*)
 {[1,1,2,0] N=3;--->0*X^3+2*X^2+X+1
 [0,0,2,0] N=3;---> 2*X^2}
      for i:= Coef.N downto 0 do
          if (coef.cells[i]<>0) then Begin // si el coeficiente es 0 no muestra: 0*X^expo
-            if (self.Masc = 0) then
-               coefic:= FloatToStr(abs(coef.cells[i]))//Convierte de extended a string(coefic)
-            else STR(abs(coef.cells[i]):0:self.Masc, coefic);//Convierte de extended a string(coefic)
-
+            case Masc of
+                 0: coefic:= FloatToStr(abs(coef.cells[i])); //Muestra solo los caracteres usados 1.0000--> 1
+                 11: STR(abs(coef.cells[i]), coefic); //Muestra Todos
+                 else STR(abs(coef.cells[i]):0:self.Masc, coefic);  // Muestra con Mascara
+            end;
             //Agregar signo +/-
+            signo:='';
             if (coef.cells[i]> 0) then begin //coef <>0 y positivo
-               if (i < coef.N) then coefic:=' + ' + coefic; //si no es el primero agrega un signo (+)
-            end else if (i < coef.N) then coefic:=' - ' + coefic //coef <>0 y negativo
-                 else coefic:='- ' + coefic; //signo(-) sin espacio al comienzo
-
+               if (grado > i) then signo:=' + '; //si es el primero no agrega un signo (+)
+            end else Begin
+                     if (grado > i) then
+                        signo:=' - '//coef <>0 y negativo
+                     else signo:='- '; //signo(-) sin espacio al comienzo
+                     DELETE(coefic,0,1); //Elimino el sigo repetido de coefic y solo queda en vble signo
+            end;
             case (i) of
-                 0: cad:= cad + coefic; //coef*X^0 --->coef
-                 1: Begin
-                      if (self.Coef.cells[i]=1) then cad:= cad + '+ X'
-                      else cad:= cad + coefic + '*X'; //coef*X^1 --->coef*X
-                 end else begin //coef*X^i
-                         STR(i,expo);
-                         if (self.Coef.cells[i]=1) then
-                            if i<coef.N then
-                               cad:= cad + '+ X^'+expo
-                            else cad:= cad + 'X^'+expo
-                         else cad:= cad + coefic+'*X^'+expo;
+                 0: cad:= cad + signo + coefic; //coef*X^0 --->coef
+                 else Begin
+                      expo:= SuperScript(i);//Superindice
+                      if ((((self.Coef.cells[i]= 1) or (self.Coef.cells[i]= -1)) and (masc=0))) then cad:= cad + signo+'x'+expo
+                      else cad:= cad + signo + coefic + 'x' + expo;
                  end;
-            end;//end case
+            end;//Case
          end; // si el coeficiente es 0 no muestra: 0*X^expo
 end;
     RESULT:= cad;
@@ -181,6 +210,317 @@ begin
 	end
 	else
     	result:=false;
+end;
+
+Procedure ruffiniEvaluador(A: Cls_Vector;var B: Cls_Vector; X: double);   // A es el vector con los coeficientes del polinomio ingresado
+var                                                                       // en el vector B guardamos la solucion del  metodo de Ruffini lo que seria C(x)y resto
+  k:byte;
+begin
+  B.cells[0]:= A.cells[0];
+  For k:= 1 to A.N do
+      B.cells[k]:= A.cells[k]+ (B.cells[k-1]*X);
+end;
+//Funcion que Evalua un polinomio
+Function EvaluarPolinomio(P: Cls_Vector; X: double): double;
+var B:Cls_Vector;
+begin
+  B:=Cls_Vector.crear(P.N);
+  ruffiniEvaluador(P,B,X);
+  EvaluarPolinomio:= B.cells[B.N];
+  B.destroy();
+end;
+PROCEDURE detDivPos(num:integer;var Vec:Cls_Vector);
+var
+  i,j:byte;
+begin
+  j:=0;
+  Vec.cells[j]:=1;
+  for i:=2 to num div 2 do
+    if(num mod i = 0) then
+      begin
+        j:=j+1;
+        Vec.cells[j]:=i;
+      end;
+  if num<>1 then
+    begin
+      j:=j+1;
+      Vec.cells[Vec.N]:=num;
+    end;
+  Vec.N:=j;
+end;
+procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
+var ult,i:byte;
+begin
+  detDivPos(trunc(P.cells[P.N]),C);
+  ult:=C.N;
+  //En este for se agrego los divisores negativos
+  for i:=0 to C.N do
+    begin
+      ult:=ult+1;
+      P.cells[ult]:=P.cells[i]*(-1);
+    end;
+  C.N:=ult;
+end;
+procedure cls_polin.raicesEnteras(P:Cls_Vector; var B:Cls_Vector);
+var i,j:integer;
+    C:Cls_Vector;
+begin
+  j:=0;
+  C:= Cls_Vector.crear(100);
+  PosiblesRaicesEnteras(P,C);
+  For i:=0 to C.N do
+     if (EvaluarPolinomio(P,C.cells[i])=0) then
+        begin
+           B.cells[j]:= C.cells[i];
+           j:=j+1;
+        end;
+  B.N:=j-1;
+  C.destroy();
+end;
+procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
+var
+  i,j,k:byte;
+  DTI,DTP:Cls_Vector;
+  TP,TI:integer;
+  PR:double;
+begin
+  TP:=trunc(Pol.cells[0]);//La parte entera del Termino principal
+  TI:=trunc(Pol.cells[Pol.N]);//La parte entera del Termino Independiente
+  DTI:=Cls_Vector.crear(2*TI);//Se multiplica por 2 pensando en que a lo sumo un numero tendra el doble de divisores y no mas ej:2 es divisor de 1,2,-1,-2
+  DTP:=Cls_Vector.crear(2*TP);
+  detDivPos(TI,DTI);//Determina los Divisores positivos del termino Independiente
+  detDivPos(TP,DTP);//Determina los Divisores positivos del termino Principal
+  k:=0;//Inicializa indice k que me llevara las posiciones del vector de PRR:Posibles raices Racionales
+  for i:=0 to DTI.N do//Este For maneja al vector DTI:Divisores del Termino Independiente
+    for j:=0 to DTP.N do//Este for maneja al vector DTP:Divisores del Termino Principal
+      begin
+        PR:=DTI.cells[i]/DTP.cells[j];//calcula la PR:Posibles raiz
+        if (PR<>trunc(PR)) then//Pregunta si el numero no es un entero entonces
+          begin
+            k:=k+2;//incrementa indice k
+            PRR.cells[k]:=PR;//Asigna la posible raiz positiva al vector de PRR:Posibles raices Racionales
+            PRR.cells[k+1]:=-PR;//Asigna la posible raiz negativa al vector de PRR:Posibles raices Racionales
+          end;
+      end;
+  DTI.destroy();
+  DTP.destroy();
+  PRR.N:=k;//Asigna el tamaño o la cantidad de elementos del vector de PRR:posibles raices racionales
+end;
+PROCEDURE cls_polin.raicesRacionales(Pol:Cls_Vector; var RR:Cls_Vector);
+var
+  i,j:byte;
+  E:double;
+  PRR:Cls_Vector;
+begin
+  E:=0.000001;//Error tomado en caso de que no me de exactamente cero el resto
+  j:=0;//Inicia la posicion del vector RR:Raices Racionales
+  PRR:=Cls_Vector.crear(100);
+  PosiblesRaicesRacionales(Pol,PRR);//se devuelve un vector cargado PRR: de las Posibles Raices Racionales
+  For i:=0 to PRR.N do
+     if ( (EvaluarPolinomio(Pol,PRR.cells[i])>=0) and (EvaluarPolinomio(Pol,PRR.cells[i])<E) ) then
+        begin
+          j:=j+1;
+          RR.cells[j]:=PRR.cells[i];
+        end;
+  PRR.destroy();
+  RR.N:=j;
+end;
+//Este metodo se encargar de realizar el cambio de variable 1/t y multiplicarla por t^n y asi obtener un nuevo polinomio en funcion de t
+procedure polNew1(Pol:Cls_Vector; var newPol:Cls_Vector);
+var
+  i:byte;
+begin
+  for i:=Pol.N downto 0 do
+    newPol.cells[Pol.N-i]:=Pol.cells[i];
+end;
+//Este metodo se encargar de realizar el cambio de variable -1/t y multiplicarla por t^n y asi obtener un nuevo polinomio en funcion de t
+procedure polNew2(Pol:Cls_Vector;var newPol:Cls_Vector);
+var
+  i,j:byte;
+begin
+  for i:=Pol.N downto 0 do
+    begin
+      j:=Pol.N-i;
+      if (j mod 2)=0 then
+        newPol.cells[j]:=Pol.cells[i]
+      else
+         newPol.cells[j]:=Pol.cells[i]*-1;
+    end;
+end;
+//Este metodo se encargar de realizar el cambio de variable -t asi obtener un nuevo polinomio en funcion de t
+procedure polNew3(Pol:Cls_Vector;var newPol:Cls_Vector);
+var
+  i:byte;
+begin
+  for i:=0 to Pol.N do
+    if (i mod 2) = 0 then
+      newPol.cells[i]:=Pol.cells[i]
+    else
+       newPol.cells[i]:=Pol.cells[i]*-1;
+end;
+
+//funcion que devuelve el menor coegficiente negativo del polinomio
+function coefNegMenor(Pol:Cls_Vector):integer;
+var
+   i:byte;
+   menor:integer;
+begin
+  menor:=0;
+  for i:=0 to Pol.N do
+    if Pol.cells[i] < menor then
+       menor:=trunc(Pol.cells[i]);
+  coefNegMenor:=menor;
+end;
+//funcion que devuelve el indice del primer coeficiente negativo del polinomio
+function indPriCoefNeg(Pol:Cls_Vector):byte;
+var
+   menor,m:integer;
+   i:byte;
+begin
+   menor:=0;
+   m:=-1;
+   for i:=0 to Pol.N do
+     if Pol.cells[i]<menor then
+        begin
+          menor:=trunc(Pol.cells[i]);
+          m:=i;
+        end;
+   indPriCoefNeg:=m;
+end;
+function cotaSupPosLagrangue(Pol:Cls_Vector):extended;
+var
+   M,K,TP:extended;
+begin
+  K:=indPriCoefNeg(Pol);
+  M:=abs(coefNegMenor(Pol));
+  TP:=Pol.cells[0];
+  if (K<>-1) and (M<>0) and (TP<>0) then
+     cotaSupPosLagrangue:=1+exp(1/K*ln(M/TP))
+  else
+     cotaSupPosLagrangue:=0;
+end;
+function cotaInfPosLagrangue(Pol:Cls_Vector):extended;
+var
+  newPol:Cls_Vector;
+  t:extended;
+begin
+  newPol:=Cls_Vector.crear(100);
+  polNew1(Pol,newPol);
+  t:=cotaSupPosLagrangue(newPol);
+  if t<>0 then
+     cotaInfPosLagrangue:=1/t
+  else
+     cotaInfPosLagrangue:=0;
+end;
+function cotaSupNegLagrangue(Pol:Cls_Vector):extended;
+var
+  newPol:Cls_Vector;
+  t:extended;
+begin
+  newPol:=Cls_Vector.crear(100);
+  polNew2(Pol,newPol);
+  t:=cotaSupPosLagrangue(NewPol);
+  if t<>0 then
+     cotaSupNegLagrangue:=-1/t
+  else
+     cotaSupNegLagrangue:=0;
+end;
+function cotaInfNegLagrangue(Pol:Cls_Vector):extended;
+var
+   newPol:Cls_Vector;
+   t:extended;
+begin
+  newPol:=Cls_Vector.crear(100);
+  polNew3(Pol,newPol);
+  t:=cotaSupPosLagrangue(NewPol);
+  if t<>0 then
+     cotaInfNegLagrangue:=-t
+  else
+     cotaInfNegLagrangue:=0;
+end;
+procedure cls_polin.Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);
+begin
+  cota.cells[0]:=cotaSupPosLagrangue(Pol);
+  cota.cells[1]:=cotaSupNegLagrangue(Pol);
+  cota.cells[2]:=cotaInfNegLagrangue(Pol);
+  cota.cells[3]:=cotaSupNegLagrangue(Pol);
+end;
+
+
+
+
+function cotaSupPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
+var
+   B: Cls_Vector;
+   i:byte;
+begin
+  B:=Cls_Vector.crear(100);
+  ruffiniEvaluador(Pol,B,X);
+  i:=0;
+  while(i<=B.N-1) and (B.cells[i]<0) do//Ponemos B.N-1 porque no quiero analizar el resto
+      i:=i+1;
+  if i>B.N-1 then
+     CotaSupPosLaguerre:=X
+  else
+     cotaSupPosLaguerre:=0;
+end;
+function cotaInfPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
+var
+   i:byte;
+   newPol,B:Cls_Vector;
+begin
+  newPol:=Cls_Vector.crear(100);
+  B:=Cls_Vector.crear(100);
+  polNew1(Pol,newPol);
+  ruffiniEvaluador(newPol,B,1/X);
+  i:=0;
+  while(i<=B.N-1) and (B.cells[i]<0) do//Ponemos B.N-1 porque no quiero analizar el resto
+      i:=i+1;
+  if i>B.N-1 then
+     CotaInfPosLaguerre:=X
+  else
+     cotaInfPosLaguerre:=0;
+end;
+function cotaSupNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
+var
+   i:byte;
+   newPol,B:Cls_Vector;
+begin
+  newPol:=Cls_Vector.crear(100);
+  B:=Cls_Vector.crear(100);
+  polNew2(Pol,newPol);
+  ruffiniEvaluador(newPol,B,-1/X);
+  i:=0;
+  while(i<=B.N-1) and (B.cells[i]<0) do//Ponemos B.N-1 porque no quiero analizar el resto
+      i:=i+1;
+  if i>B.N-1 then
+     CotaSupNegLaguerre:=X
+  else
+     cotaSupNegLaguerre:=0;
+end;
+function cotaInfNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
+var
+  i:byte;
+  newPol,B:Cls_Vector;
+begin
+  newPol:=Cls_Vector.crear(100);
+  B:=Cls_Vector.crear(100);
+  polNew2(Pol,newPol);
+  ruffiniEvaluador(newPol,B,-1*X);
+  i:=0;
+  while(i<=B.N-1) and (B.cells[i]<0) do//Ponemos B.N-1 porque no quiero analizar el resto
+      i:=i+1;
+  if i>B.N-1 then
+     CotaInfNegLaguerre:=X
+  else
+     cotaInfNegLaguerre:=0;
+end;
+procedure cls_polin.Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);
+begin
+  cota.cells[0]:=cotaSupPosLaguerre(Pol,X);
+  cota.cells[1]:=cotaSupNegLaguerre(Pol,X);
+  cota.cells[2]:=cotaInfNegLaguerre(Pol,X);
+  cota.cells[3]:=cotaSupNegLaguerre(Pol,X);
 end;
 
 BEGIN

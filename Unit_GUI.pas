@@ -16,7 +16,7 @@ uses
     {$IFDEF UNIX}{$IFDEF UseCThreads}
     cthreads, cmem
     {$ENDIF}{$ENDIF}
-    Classes, Forms, StdCtrls, Menus, PolinD, Controls, Types;
+    Classes, Forms, StdCtrls, Menus, PolinD, Controls;
 
 type
   { TForm1 }
@@ -39,7 +39,6 @@ type
     item_invertir: TMenuItem;
     Item_Div1: TMenuItem;
     Item_Div2: TMenuItem;
-
     procedure FormCreate(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure Item_EditarClick(Sender: TObject);
@@ -50,6 +49,7 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
+    procedure Raices_Enteras_ItemClick(Sender: TObject);
     procedure SalirClick(Sender: TObject);
     Procedure Check_Enabled();
     procedure X_LabelClick(Sender: TObject);
@@ -71,7 +71,7 @@ var
 implementation
 {$R *.lfm}
 USES
-    Unit_GUI_Form2,  Unit_GUI_Form3, SysUtils, Dialogs;
+    Unit_GUI_Form2,  Unit_GUI_Form3, SysUtils, Dialogs, VectorD;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -116,6 +116,8 @@ begin
      Form3.Free;
      Form3:= nil;
      Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+     X:= 0;
+     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
      Self.Visible:= True;
      self.check_enabled();
 end;
@@ -137,20 +139,29 @@ end;
 procedure TForm1.Pol_N_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
-     If (Pol_N.Masc > MIN_MASC) then Begin
+     If (Pol_N.Masc > MIN_MASC) then
          Pol_N.Masc:= Pol_N.Masc -1
-     end else Pol_N.Masc:= self.MAX_MASC -1;
+     else Pol_N.Masc:= self.MAX_MASC;
      self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
 end;
 
 procedure TForm1.Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
-     If (Pol_N.Masc < self.MAX_MASC) then Begin
-         Pol_N.Masc:= Pol_N.Masc +1;
-         if Pol_N.Masc=self.MAX_MASC then Pol_N.Masc:= 0;
-         self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
-     end;
+     If (Pol_N.Masc < self.MAX_MASC) then
+         Pol_N.Masc:= Pol_N.Masc +1
+     else Pol_N.Masc:= self.MIN_MASC;
+     self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+end;
+
+procedure TForm1.Raices_Enteras_ItemClick(Sender: TObject);
+Var
+  enteras: cls_Vector;
+begin
+     enteras:= Cls_Vector.Crear(pol_n.Grado());
+     Pol_N.raicesEnteras(Pol_N.Coef,enteras);
+     showmessage('Posibles Raices Enteras' + enteras.ToString());
+     enteras.Destroy;
 end;
 
 procedure TForm1.SalirClick(Sender: TObject);

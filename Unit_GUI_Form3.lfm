@@ -1,7 +1,7 @@
 object Form3: TForm3
-  Left = 310
+  Left = 356
   Height = 533
-  Top = 83
+  Top = 112
   Width = 769
   HorzScrollBar.Page = 1
   VertScrollBar.Page = 1
@@ -43,6 +43,8 @@ object Form3: TForm3
         'Preview_Memo'
       )
       OnClick = Pol_N_MemoClick
+      OnMouseWheelDown = Pol_N_MemoMouseWheelDown
+      OnMouseWheelUp = Pol_N_MemoMouseWheelUp
       ParentFont = False
       ParentShowHint = False
       ReadOnly = True
@@ -85,6 +87,8 @@ object Form3: TForm3
         'Preview_Memo'
       )
       OnClick = Divisor_MemoClick
+      OnMouseWheelDown = Divisor_MemoMouseWheelDown
+      OnMouseWheelUp = Divisor_MemoMouseWheelUp
       ParentFont = False
       ParentShowHint = False
       ReadOnly = True

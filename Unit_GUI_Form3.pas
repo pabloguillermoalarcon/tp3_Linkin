@@ -7,7 +7,6 @@ uses
     cthreads, cmem
   {$ENDIF}{$ENDIF}
   Classes, Forms, StdCtrls, PolinD;
-
 type
   TForm3 = class(TForm)
     Pol_N_GroupBox: TGroupBox;
@@ -21,10 +20,18 @@ type
     constructor Crear(Comp: Tcomponent; VAR Pol: cls_Polin; Tipo_Polinomio: byte);
     procedure Divisor_GroupBoxDblClick(Sender: TObject);
     procedure Divisor_MemoClick(Sender: TObject);
+    procedure Divisor_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure Divisor_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
     procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure Pol_N_MemoClick(Sender: TObject);
     Procedure dividir();
     Procedure Check_Enabled();
+    procedure Pol_N_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
   private
     { private declarations }
   public
@@ -39,6 +46,8 @@ type
     2---> Especial Monico Divisor Grado 2: X^2+rX+s *)
     Puedo_Dividir: Boolean;
     Divisor_Load: Boolean;
+    MIN_MASC: byte;
+    MAX_MASC: byte;
   end;
 
 var
@@ -79,6 +88,8 @@ Begin
       Divisor_Memo.Lines.Text:='<< Click para editar >>';
       Puedo_Dividir:= False;
       Divisor_Load:= False;
+      MIN_MASC:= 0;
+      MAX_MASC:= 11;
       Check_Enabled();
 end;
 
@@ -164,6 +175,42 @@ Begin
                     Cociente_GroupBox.Visible:= False;
                     Resto_GroupBox.Visible:= False;
       end;
+end;
+
+procedure TForm3.Pol_N_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+     If (Polin.Masc > MIN_MASC) then
+         Polin.Masc:= Polin.Masc -1
+     else Polin.Masc:= self.MAX_MASC;
+     self.Pol_N_Memo.Lines.Text:= Polin.Coef_To_String();
+end;
+
+procedure TForm3.Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+     If (Polin.Masc < self.MAX_MASC) then
+         Polin.Masc:= Polin.Masc +1
+     else Polin.Masc:= self.MIN_MASC;
+     self.Pol_N_Memo.Lines.Text:= Polin.Coef_To_String();
+end;
+
+procedure TForm3.Divisor_MemoMouseWheelDown(Sender: TObject;
+  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+begin
+     If (Divisor.Masc > MIN_MASC) then
+         Divisor.Masc:= Divisor.Masc -1
+     else Divisor.Masc:= self.MAX_MASC;
+     self.Divisor_Memo.Lines.Text:= Divisor.Coef_To_String();
+end;
+
+procedure TForm3.Divisor_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+     If (Divisor.Masc < self.MAX_MASC) then
+         Divisor.Masc:= Divisor.Masc +1
+     else Divisor.Masc:= self.MIN_MASC;
+     self.Divisor_Memo.Lines.Text:= Divisor.Coef_To_String();
 end;
 
 Begin
