@@ -27,8 +27,9 @@ Type
          procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          Function Raices_To_String(): String;
-         function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner Doble
-         function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;//Horner
+         function subPolin(posini:integer;cant:integer):Cls_Polin;
+         function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+         function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
          procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
          procedure raicesEnteras(P:Cls_Vector; var B:Cls_Vector);//Devuelve todas las raices enteras de un polinomio,en caso de no tener raices preguntar si B.N=-1
@@ -174,24 +175,36 @@ Begin
      RESULT:= self.Coef.N;
 end;
 
+function Cls_Polin.SubPolin(posini:integer;cant:integer):Cls_Polin;
+var
+	polinAux:Cls_Polin;
+begin
+	//no hacemos ningun tipo de control dado que
+    //subVector() se encarga de esto y retorna "nil" si no cumple las cond.
+	polinAux:=cls_Polin.crear(cant-1);	//polin.crear(grado)
+    polinAux.Coef:=self.coef.subVector(posini,cant);
+    result:=polinAux;
+end;
+
 function Cls_Polin.horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
 var
     i:byte;
     alfa:Extended;
+    //operaremos sobre polinAux para que los indices del algoritmo
+    //concuerde con el de la carpeta teorica
+    polinAux:cls_Polin;
 begin
-	if ((divisor.coef.N=1) and (divisor.Coef.cells[1]=1.0)) then
+	if ((divisor.Grado=1) and (divisor.Coef.cells[1]=1.0)) then
 	begin
         alfa:=divisor.Coef.cells[0];
-		cociente:=Cls_Polin.crear(self.coef.N);
-        i:=self.coef.N;
-   	    cociente.Coef.cells[i-1]:=self.Coef.cells[i];
-        for i:=i-1 downto 1 do
+		polinAux:=Cls_Polin.crear(self.grado);
+   	    polinAux.Coef.cells[self.Grado]:=self.Coef.cells[self.Grado];
+        for i:=self.grado-1 downto 0 do
         begin
-        	cociente.Coef.cells[i-1]:=-alfa*cociente.coef.cells[i]+self.Coef.cells[i];
+        	polinAux.Coef.cells[i]:=-alfa*polinAux.coef.cells[i+1]+self.Coef.cells[i];
     	end;
-
-		resto:=Cls_Polin.crear(1);
-        resto.Coef.cells[0]:=-alfa*cociente.coef.cells[0]+self.Coef.cells[0];
+        cociente:=polinAux.subPolin(1,self.Grado);
+        resto:=polinAux.subPolin(0,1);
 		result:=true;
 	end
 	else
