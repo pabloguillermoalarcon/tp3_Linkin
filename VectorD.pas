@@ -57,6 +57,7 @@ Cls_Vector = class
         Procedure Intercambiar(const i: integer; const j: integer);
         Procedure eliminaX(const pos: integer);
         Procedure insertarX(const elemento: extended; const pos: integer);
+        function subVector(posini:integer; cant:integer):Cls_Vector; //retorna un sub-Vector (desde, cantidad);
         {Muestra el vector por consola (usando Write), por defecto en Horizontal, con opcion
         de mandar como parametro entero 1 para que lo muestre vertical al vector
         Ejemplos:
@@ -345,6 +346,21 @@ Begin
          cells[i]:= num*cells[i];
 end;
 
+function Cls_Vector.subVector(posini:integer; cant:integer):Cls_Vector;
+var
+	vectorAux:cls_Vector;
+    i:byte;
+begin
+	if (cant>0) and (posini>=0) and (posini+cant<=self.N+1) then
+    begin
+	    vectorAux:=cls_Vector.crear(cant); //vector.crear(cantidad) cantidad>=1
+        for i:=0 to cant-1 do
+            vectorAux.cells[i]:=self.cells[i+posini];
+        result:=vectorAux;
+	end
+    else
+    	result:=nil;
+end;
 
 BEGIN
 END.
