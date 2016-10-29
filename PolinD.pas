@@ -27,9 +27,9 @@ Type
          procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          Function Raices_To_String(): String;
-         function subPolin(posini:integer;cant:integer):Cls_Polin;
          function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+         function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
          procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
          procedure raicesEnteras(P:Cls_Vector; var B:Cls_Vector);//Devuelve todas las raices enteras de un polinomio,en caso de no tener raices preguntar si B.N=-1
@@ -40,6 +40,10 @@ Type
          procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
          procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD
          procedure bairstow(error:extended; r:extended; s:extended; max_iter:integer);
+  private
+         //hornerCuad es llamado por hornerCuadratico()
+         function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+         function subPolin(posini:integer;cant:integer):Cls_Polin; //no le veo la necesidad de q sea publico
 end;
 
 implementation
@@ -218,15 +222,64 @@ begin
     alfa:=divisor.Coef.cells[1];
     beta:=divisor.Coef.cells[0];
 
-    divisor.coef.cells[1]:=1;
-    divisor.coef.cells[0]:=beta/alfa;
+    divisor.Coef.xEscalar(1/alfa);
     if horner(divisor,cociente,resto) then
     begin
+       	divisor.Coef.xEscalar(alfa);	//vuelve divisor a sus coef original
         cociente.Coef.xEscalar(alfa);
         resto.Coef.xEscalar(alfa);
     	result:= true;
 	end
 	else
+    	result:=false;
+end;
+
+function Cls_Polin.hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+//pagina 52 de la carpeta
+var
+    i:byte;
+	alfa,beta:extended;
+    polinC:cls_Polin;
+begin
+    if (self.Grado>=2) and (divisor.Grado=2) and (divisor.coef.cells[2]=1.0) then
+    begin
+    	alfa:=divisor.coef.cells[1];
+        beta:=divisor.coef.cells[0];
+        //definimos C(n+1) -Ver carpeta teórica
+        polinC:=cls_Polin.crear(self.Grado);
+        i:=self.Grado;	//i=n de la carpeta teorica
+        polinC.coef.cells[i]:=self.coef.cells[i];
+        polinC.Coef.cells[i-1]:=(-alfa)*polinC.coef.cells[i]+self.coef.cells[i-1];
+        for i:=self.Grado-2 downto 1 do
+            polinC.Coef.cells[i]:=	polinC.Coef.cells[i+1]*(-alfa)+
+            						polinC.coef.cells[i+2]*(-beta)+
+                                    self.Coef.cells[i];
+        polinC.coef.cells[0]:=polinC.coef.cells[2]*(-beta)+self.Coef.cells[0];
+        //polinC Guarda cociente(x)+resto(x)
+        resto:=polinC.subPolin(0,2);
+        cociente:=polinC.subPolin(2,self.Grado-1);
+        result:=true;
+    end
+    else
+    	result:= false;
+end;
+
+function Cls_Polin.hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+var
+    alfa:extended;
+begin
+    alfa:=divisor.Coef.cells[2];
+	divisor.Coef.xEscalar(1/alfa);
+    if self.hornerCuad(divisor,cociente,resto) then
+    begin
+       //hay q buscar la forma de duplicar el objeto
+       //para no modificar el divisor original
+        divisor.Coef.xEscalar(alfa); //vuelve divisor a sus coef original
+    	cociente.Coef.xEscalar(alfa);
+        resto.Coef.xEscalar(alfa);
+        result:=true;
+    end
+    else
     	result:=false;
 end;
 
