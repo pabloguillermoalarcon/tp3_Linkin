@@ -35,8 +35,6 @@ Type
          function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
          procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
-         procedure raicesEnteras(P:Cls_Vector; var B:Cls_Vector);//Devuelve todas las raices enteras de un polinomio,en caso de no tener raices preguntar si B.N=-1
-         procedure raicesRacionales(Pol:Cls_Vector; var RR:Cls_Vector);//Devuelve todas las racices racionales de un polinomio,en caso de no tener raices preguntar si B.N=0
          procedure Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          procedure Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          function cotasNewton():cls_Vector;
@@ -357,23 +355,28 @@ begin
 end;
 PROCEDURE detDivPos(num:integer;var Vec:Cls_Vector);
 var
-  i,j:byte;
+  i,j:integer;
 begin
   j:=0;
-  Vec.cells[j]:=1;
-  for i:=2 to num div 2 do
-    if(num mod i = 0) then
+  if (num<>1) and (num<>-1)then
+    if num<>0 then
       begin
+        Vec.cells[j]:=1;
+        for i:=2 to num div 2 do
+           if(num mod i = 0) then
+           begin
+             j:=j+1;
+             Vec.cells[j]:=i;
+           end;
         j:=j+1;
-        Vec.cells[j]:=i;
-      end;
-  if num<>1 then
-    begin
-      j:=j+1;
-      Vec.cells[Vec.N]:=num;
-    end;
+        Vec.cells[j]:=num;
+      end
+    else
+      Vec.cells[j]:=0
+  else
+    Vec.cells[j]:=1;
   Vec.N:=j;
-end;
+end; 
 
 procedure Cls_Polin.PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
 var ult,i:byte;
@@ -388,69 +391,42 @@ begin
     end;
   C.N:=ult;
 end;  
-procedure cls_polin.raicesEnteras(P:Cls_Vector; var B:Cls_Vector);
-var i,j:integer;
-    C:Cls_Vector;
-begin
-  j:=0;
-  C:= Cls_Vector.crear(100);
-  PosiblesRaicesEnteras(P,C);
-  For i:=0 to C.N do
-     if (EvaluarPolinomio(P,C.cells[i])=0) then
-        begin
-           B.cells[j]:= C.cells[i];
-           j:=j+1;
-        end;
-  B.N:=j-1;
-  C.destroy();
-end;
 procedure Cls_Polin.PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
 var
   i,j,k:byte;
   DTI,DTP:Cls_Vector;
   TP,TI:integer;
-  PR:double;
+  PR:extended;
 begin
   TP:=trunc(Pol.cells[0]);//La parte entera del Termino principal
   TI:=trunc(Pol.cells[Pol.N]);//La parte entera del Termino Independiente
-  DTI:=Cls_Vector.crear(2*TI);//Se multiplica por 2 pensando en que a lo sumo un numero tendra el doble de divisores y no mas ej:2 es divisor de 1,2,-1,-2
-  DTP:=Cls_Vector.crear(2*TP);
-  detDivPos(TI,DTI);//Determina los Divisores positivos del termino Independiente
-  detDivPos(TP,DTP);//Determina los Divisores positivos del termino Principal
-  k:=0;//Inicializa indice k que me llevara las posiciones del vector de PRR:Posibles raices Racionales
-  for i:=0 to DTI.N do//Este For maneja al vector DTI:Divisores del Termino Independiente
-    for j:=0 to DTP.N do//Este for maneja al vector DTP:Divisores del Termino Principal
-      begin
-        PR:=DTI.cells[i]/DTP.cells[j];//calcula la PR:Posibles raiz
-        if (PR<>trunc(PR)) then//Pregunta si el numero no es un entero entonces
+  if TI<>0 then
+    begin
+      DTI:=Cls_Vector.crear(TI+2);
+      DTP:=Cls_Vector.crear(TP+2);
+      detDivPos(TI,DTI);//Determina los Divisores positivos del termino Independiente
+      detDivPos(TP,DTP);//Determina los Divisores positivos del termino Principal
+      k:=0;//Inicializa indice k que me llevara las posiciones del vector de PRR:Posibles raices Racionales
+      for i:=0 to DTI.N do//Este For maneja al vector DTI:Divisores del Termino Independiente
+        for j:=0 to DTP.N do//Este for maneja al vector DTP:Divisores del Termino Principal
           begin
-            k:=k+2;//incrementa indice k
-            PRR.cells[k]:=PR;//Asigna la posible raiz positiva al vector de PRR:Posibles raices Racionales
-            PRR.cells[k+1]:=-PR;//Asigna la posible raiz negativa al vector de PRR:Posibles raices Racionales
+            PR:=DTI.cells[i]/DTP.cells[j];//calcula la PR:Posibles raiz
+            if (PR<>trunc(PR)) then//Pregunta si el numero no es un entero entonces
+              begin
+                PRR.cells[k]:=PR;//Asigna la posible raiz positiva al vector de PRR:Posibles raices Racionales
+                PRR.cells[k+1]:=-PR;//Asigna la posible raiz negativa al vector de PRR:Posibles raices Racionales
+                k:=k+2;//incrementa indice k
+              end;
           end;
-      end;
-  DTI.destroy();
-  DTP.destroy();
-  PRR.N:=k;//Asigna el tamaño o la cantidad de elementos del vector de PRR:posibles raices racionales
-end;
-PROCEDURE cls_polin.raicesRacionales(Pol:Cls_Vector; var RR:Cls_Vector);
-var
-  i,j:byte;
-  E:double;
-  PRR:Cls_Vector;
-begin
-  E:=0.000001;//Error tomado en caso de que no me de exactamente cero el resto
-  j:=0;//Inicia la posicion del vector RR:Raices Racionales
-  PRR:=Cls_Vector.crear(100);
-  PosiblesRaicesRacionales(Pol,PRR);//se devuelve un vector cargado PRR: de las Posibles Raices Racionales
-  For i:=0 to PRR.N do
-     if ( (EvaluarPolinomio(Pol,PRR.cells[i])>=0) and (EvaluarPolinomio(Pol,PRR.cells[i])<E) ) then
-        begin
-          j:=j+1;
-          RR.cells[j]:=PRR.cells[i];
-        end;
-  PRR.destroy();
-  RR.N:=j;
+      DTI.destroy();
+      DTP.destroy();
+      PRR.N:=k-1;//Asigna el tamaño o la cantidad de elementos del vector de PRR:posibles raices racionales
+    end
+  else
+    begin
+      PRR.cells[0]:=0;
+      PRR.N:=0;
+    end;
 end;
 //Este metodo se encargar de realizar el cambio de variable 1/t y multiplicarla por t^n y asi obtener un nuevo polinomio en funcion de t
 procedure polNew1(Pol:Cls_Vector; var newPol:Cls_Vector);
