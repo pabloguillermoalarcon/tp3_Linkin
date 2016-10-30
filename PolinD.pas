@@ -24,9 +24,12 @@ Type
          Function Grado(): integer; //Devuelve el grado del polinomio
          Procedure Redimensionar(Grad: integer);
          procedure Copiar(Polin2: cls_Polin); //pol:= polin2
+         function Clon():cls_Polin; //pol:= polin2
          procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          Function Raices_To_String(): String;
+         function evaluar(x:extended):extended;
+         function derivada():cls_Polin; //devuelve la derivada primera del polinomio
          function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
@@ -36,6 +39,7 @@ Type
          procedure raicesRacionales(Pol:Cls_Vector; var RR:Cls_Vector);//Devuelve todas las racices racionales de un polinomio,en caso de no tener raices preguntar si B.N=0
          procedure Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          procedure Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
+         function cotasNewton():cls_Vector;
          function determinante():extended;
          procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
          procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD
@@ -44,6 +48,17 @@ Type
          //hornerCuad es llamado por hornerCuadratico()
          function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function subPolin(posini:integer;cant:integer):Cls_Polin; //no le veo la necesidad de q sea publico
+         //metodos de cambio de variable...
+         function New1():cls_polin;
+         function New2():cls_polin;
+         function New3():cls_polin;
+         //SubFunciones Cotas para Newton
+         function cotaSupPosNewton():extended;
+         function cotaInfPosNewton():extended;
+         function cotaSupNegNewton():extended;
+         function cotaInfNegNewton():extended;
+
+         const SALTO=0.5;
 end;
 
 implementation
@@ -174,6 +189,15 @@ Begin
           self.Raices.copiar(polin2.Raices);
 end;
 
+function cls_polin.clon():cls_polin;
+var
+	pAux:cls_Polin;
+begin
+	pAux:=cls_Polin.crear(self.Grado);
+    pAux.copiar(self);
+    result:=pAux;
+end;
+
 function cls_polin.Grado():integer;
 Begin
      RESULT:= self.Coef.N;
@@ -187,6 +211,36 @@ begin
     //subVector() se encarga de esto y retorna "nil" si no cumple las cond.
 	polinAux:=cls_Polin.crear(cant-1);	//polin.crear(grado)
     polinAux.Coef:=self.coef.subVector(posini,cant);
+    result:=polinAux;
+end;
+
+function Cls_Polin.evaluar(x:extended):extended;
+var
+    aux:extended;
+    i:integer;
+begin
+    aux:=self.Coef.cells[self.Grado];
+    for i:=self.Grado()-1 downto 0 do
+    	aux:=aux*x+self.Coef.cells[i];
+    result:=aux;
+end;
+
+function cls_Polin.derivada():cls_Polin;
+var
+    polinAux:cls_Polin;
+    i:byte;
+begin
+    if self.Grado>0 then
+    begin
+    	polinAux:=cls_Polin.crear(self.Grado-1);
+        for i:=self.Grado downto 1 do
+            polinAux.coef.cells[i-1]:=self.coef.cells[i]*i;
+    end
+    else
+    begin
+    	polinAux:=cls_Polin.crear(0);
+    	polinAux.coef.cells[0]:=0;
+    end;
     result:=polinAux;
 end;
 
@@ -406,6 +460,19 @@ begin
   for i:=Pol.N downto 0 do
     newPol.cells[Pol.N-i]:=Pol.cells[i];
 end;
+//lo mismo q el anterior pero aplicado al polinomio y retorna un polinomio
+function cls_Polin.New1():cls_polin;
+var
+	pAux:cls_polin;
+    vAux:cls_Vector;
+begin
+	pAux:=cls_Polin.crear(self.Grado);
+    vAux:=cls_vector.crear(self.Grado+1);
+    polNew1(self.coef,vAux);
+    pAux.coef:=vAux;
+    result:=pAux;
+end;
+
 //Este metodo se encargar de realizar el cambio de variable -1/t y multiplicarla por t^n y asi obtener un nuevo polinomio en funcion de t
 procedure polNew2(Pol:Cls_Vector;var newPol:Cls_Vector);
 var
@@ -420,6 +487,18 @@ begin
          newPol.cells[j]:=Pol.cells[i]*-1;
     end;
 end;
+function cls_Polin.New2():cls_polin;
+var
+	pAux:cls_polin;
+    vAux:cls_Vector;
+begin
+	pAux:=cls_Polin.crear(self.Grado);
+    vAux:=cls_vector.crear(self.Grado+1);
+    polNew2(self.coef,vAux);
+    pAux.coef:=vAux;
+    result:=pAux;
+end;
+
 //Este metodo se encargar de realizar el cambio de variable -t asi obtener un nuevo polinomio en funcion de t
 procedure polNew3(Pol:Cls_Vector;var newPol:Cls_Vector);
 var
@@ -430,6 +509,17 @@ begin
       newPol.cells[i]:=Pol.cells[i]
     else
        newPol.cells[i]:=Pol.cells[i]*-1;
+end;
+function cls_Polin.New3():cls_polin;
+var
+	pAux:cls_polin;
+    vAux:cls_Vector;
+begin
+	pAux:=cls_Polin.crear(self.Grado);
+    vAux:=cls_vector.crear(self.Grado+1);
+    polNew3(self.coef,vAux);
+    pAux.coef:=vAux;
+    result:=pAux;
 end;
 
 //funcion que devuelve el menor coegficiente negativo del polinomio
@@ -596,6 +686,84 @@ begin
   cota.cells[3]:=cotaSupNegLaguerre(Pol,X);
 
 end;
+function cls_Polin.cotaSupPosNewton():extended;
+var
+	pAux:cls_Polin;
+    band:boolean;
+    x:extended;
+begin
+	band:=false;
+    x:=0;
+    while (not band) do
+    begin
+    	pAux:=self.clon();
+	    while (pAux.evaluar(x)>0) and (pAux.Grado > 0)do
+        	pAux:=pAux.derivada;
+        if (pAux.evaluar(x)>0) and (pAux.Grado=0) then
+        	band:=true
+        else
+        	x:=x+SALTO; //SALTO: constante definida en la clase cls_Polin
+        pAux.destroy;
+	end;
+	result:=x;
+end;
+
+function cls_Polin.cotaInfPosNewton():extended;
+var
+    pAux:cls_Polin;
+    cota:extended;
+begin
+	pAux:=self.New1();
+    if (pAux.coef.cells[pAux.grado]<0) then
+    	pAux.Coef.xEscalar(-1);
+    cota:=pAux.cotaSupPosNewton();
+    if cota>0 then
+    	result:=1/cota
+    else
+        result:=0;
+end;
+
+function cls_Polin.cotaSupNegNewton():extended;
+var
+    pAux:cls_Polin;
+    cota:extended;
+begin
+	pAux:=self.New2();
+    if (pAux.coef.cells[pAux.grado]<0) then
+    	pAux.Coef.xEscalar(-1);
+    cota:=pAux.cotaSupPosNewton();
+    if cota>0 then
+    	result:=-1/cota
+    else
+        result:=0;
+end;
+
+function cls_Polin.cotaInfNegNewton():extended;
+var
+    pAux:cls_Polin;
+    cota:extended;
+begin
+	pAux:=self.New3();
+    if (pAux.coef.cells[pAux.grado]<0) then
+    	pAux.Coef.xEscalar(-1);
+    cota:=pAux.cotaSupPosNewton();
+    if cota>0 then
+    	result:=cota*(-1)
+    else
+        result:=0;
+end;
+function cls_Polin.cotasNewton():cls_Vector;
+var
+    vector:cls_Vector;
+begin
+	vector:=cls_Vector.crear(4);
+    vector.cells[0]:=self.cotaSupPosNewton();
+    vector.cells[1]:=self.cotaInfPosNewton();
+    vector.cells[2]:=self.cotaSupNegNewton();
+    vector.cells[3]:=self.cotaInfNegNewton();
+    result:=vector;
+end;
+
 procedure Cls_Polin.horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);
 var
     aux:cls_polin;
