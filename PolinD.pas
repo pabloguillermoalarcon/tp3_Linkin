@@ -770,7 +770,7 @@ var
     m,i:integer;
 begin
     m:=self.Grado();
-    aux.Crear(m,2,false);
+    aux:=cls_polin.Crear(m,2,false);
     aux.Copiar(self);
     b.Redimensionar(self.Grado());
     c.Redimensionar(self.Grado());
@@ -786,6 +786,7 @@ begin
             b.Coef.cells[i]:=aux.Coef.cells[i]+r*b.Coef.cells[i+1]+s*b.Coef.cells[i+2];
             c.Coef.cells[i]:=b.Coef.cells[i]+r*c.Coef.cells[i+1]+s*c.Coef.cells[i+2];
         end;
+    aux.Destroy;
 end;
 
 function cls_polin.determinante():extended;
@@ -833,11 +834,10 @@ var
     r2:extended;
     i2:extended;
     i:integer;
-
 begin
-    a.Crear(self.Grado(),2,false);
-    b.Crear(self.Grado(),2,false);
-    c.Crear(self.Grado(),2,false);
+    a:=cls_polin.Crear(self.Grado(),2,false);
+    b:=cls_polin.Crear(self.Grado(),2,false);
+    c:=cls_polin.Crear(self.Grado(),2,false);
     a.Copiar(self);
     err_a1:=1;
     err_a2:=2;
@@ -896,6 +896,9 @@ begin
                    self.Nraices.cells[1,a.Grado()]:=0;
                end;
         end;
+    a.Destroy;
+    b.Destroy;
+    c.Destroy;
 end;
 
 Function cls_Polin.Raices_To_String(): String;
