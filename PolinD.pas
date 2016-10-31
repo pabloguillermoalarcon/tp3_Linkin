@@ -763,7 +763,40 @@ begin
     vector.cells[3]:=self.cotaInfNegNewton();
     result:=vector;
 end;
-
+procedure sturm(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
+var
+  Pol1,Pol2:Cls_Vector;
+  m:Cls_Matriz;
+  i,j,c:byte;
+begin
+  Pol1:=Cls_Vector.crear(100);
+  Pol2:=Cls_Vector.crear(100);
+  m:=Cls_Matriz.crear(Pol.N+1,Inter.N);//Se coloca Pol.N+1 porque queremos una fila mas donde se colocara la cantidad de cambio de variables
+  for i:=0 to Pol.N do//Este For controla las filas de la tabla(hace referencia a los polinomios que obtendre y evaluados)
+    begin
+      for j:=0 to Inter.N do//Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados equivalentes a los intervalos)
+        m.cells[i,j]:=EvaluarPolinomio(Pol1,Inter.cells[j]);
+      dividePolinomio(Pol1,Pol2,Pol3);//Obtenemos un nuevo polinomio que correspode a el resto de dividir Pol1 / Pol2
+      Pol1.Copiar(Pol2);
+      Pol2.Copiar(Pol3);
+    end;
+  for j:=0 to m.NumC do
+    begin
+      c:=0;
+      for i:=0 to m.NumF do
+        begin
+          if m.cells[i,j]*m.cells[i+1,j]<0 then
+            c:=c+1;
+        end;
+      m.cells[i,j]:=c;
+    end;
+  for j:=0 to m.NumC-1 do
+    if abs(m.cells[m.NumF,j]-m.cells[m.NumF,j])=1 then
+      begin
+        InterRaiz.cells[j]:=Inter.cells[j];
+        InterRaiz.cells[j+1]:=Inter.cells[j+1];
+      end;
+end;                                  
 procedure Cls_Polin.horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);
 var
     aux:cls_polin;
