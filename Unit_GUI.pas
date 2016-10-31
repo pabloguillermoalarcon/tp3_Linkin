@@ -41,6 +41,7 @@ type
     Item_Div2: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: char);
+    procedure Item_Div2Click(Sender: TObject);
     procedure Item_EditarClick(Sender: TObject);
     procedure Item_invertirClick(Sender: TObject);
     procedure Item_Div1Click(Sender: TObject);
@@ -53,7 +54,7 @@ type
     procedure SalirClick(Sender: TObject);
     Procedure Check_Enabled();
     procedure X_LabelClick(Sender: TObject);
-    Function Calcular_Px(): extended;
+    Function Calcular_Px(): extended; //Evalua el Polinomio en un X
   private
     { private declarations }
   public
@@ -62,7 +63,7 @@ type
      Pol_N_load: boolean;
      MIN_MASC: byte;
      MAX_MASC: byte;
-     X: extended;
+     X: extended;  //Sirve para Evalua el Polinomio en un X --->Calcular_Px()
   end;
 
 var
@@ -93,7 +94,7 @@ end;
 
 procedure TForm1.Item_EditarClick(Sender: TObject);
 begin
-     //Tambien accede aqui menuItem--->Editar (Pol_N)
+     //Tambien accede aqui onClick--->Pol_N_Memo
      Form2:= TForm2.Crear(Nil, Pol_N, 0);
      Form2.ShowModal;
      if (Form2.ModalResult = mrOk) then Begin
@@ -112,6 +113,20 @@ procedure TForm1.Item_Div1Click(Sender: TObject);
 begin
      Self.Visible:= False;
      Form3:= TForm3.Crear(nil,Pol_N,1);
+     Form3.ShowModal;
+     Form3.Free;
+     Form3:= nil;
+     Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+     X:= 0;
+     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+     Self.Visible:= True;
+     self.check_enabled();
+end;
+
+procedure TForm1.Item_Div2Click(Sender: TObject);
+begin
+     Self.Visible:= False;
+     Form3:= TForm3.Crear(nil,Pol_N,2);
      Form3.ShowModal;
      Form3.Free;
      Form3:= nil;
@@ -213,13 +228,15 @@ Function TForm1.Calcular_Px(): extended;
 var
   divi,coc,res: cls_polin;
 Begin
-     divi:= cls_Polin.Crear(1);
-     divi.Coef.cells[1]:= 1;
-     divi.Coef.cells[0]:= -X;
-     coc:= cls_Polin.Crear(self.Pol_N.Grado() -1);
-     res:= cls_Polin.Crear(0);
-     Pol_N.ruffini(divi,coc,res);
-     Result:= res.Coef.cells[0];
+     if (self.Pol_N.Grado() > 0) then Begin
+        divi:= cls_Polin.Crear(1);
+        divi.Coef.cells[1]:= 1;
+        divi.Coef.cells[0]:= -X;
+        coc:= cls_Polin.Crear(self.Pol_N.Grado() -1);
+        res:= cls_Polin.Crear(0);
+        Pol_N.ruffini(divi,coc,res);
+        Result:= res.Coef.cells[0];
+     end else Result:= Pol_N.Coef.cells[0];
 end;
 
 BEGIN

@@ -73,6 +73,7 @@ object Form1: TForm1
       object Item_Div2: TMenuItem
         Caption = 'Dividir x Polinomio Monico Grado 2'
         ShortCut = 8242
+        OnClick = Item_Div2Click
       end
       object Salir: TMenuItem
         Caption = 'Salir'

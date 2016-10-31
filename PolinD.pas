@@ -14,17 +14,16 @@ Type
   Private
          Coeficientes: cls_Vector; // vector de Coeficientes [Ao,...,An]
          Nraices: cls_Matriz; //Matriz de 2 x N para las raices, Parte Real y Parte Im
-         Function SuperScript(indice: integer): AnsiString;
   Public
          band_A0: boolean; //indica si se visualiza [a0,...,aN]=TRUE; [aN,...,a0]=FALSE
          Masc: integer; //Mascara: guarda la cantidad de decimales para mostrar cuando se convierte con Coef_To_String()
-         constructor Crear(Grado: integer = 5; Mascara: integer=0; Visualizar_A0:boolean = false);
+         constructor Crear(Grad: integer = 5; Mascara: integer=0; Visualizar_A0:boolean = false);
          Property Coef: cls_Vector READ Coeficientes WRITE Coeficientes;
          Property Raices: Cls_Matriz READ Nraices WRITE Nraices;
-         Function Grado(): integer; //Devuelve el grado del polinomio
          Procedure Redimensionar(Grad: integer);
+         Function Grado(): integer; //Devuelve el grado del polinomio
          procedure Copiar(Polin2: cls_Polin); //pol:= polin2
-         function Clon():cls_Polin; //pol:= polin2
+         function Clon():cls_Polin; //polin2:= pol
          procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          Function Raices_To_String(): String;
@@ -45,6 +44,7 @@ Type
          procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD
          procedure bairstow(error:extended; r:extended; s:extended; max_iter:integer);
   private
+         Function SuperScript(indice: integer): AnsiString;
          //hornerCuad es llamado por hornerCuadratico()
          function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function subPolin(posini:integer;cant:integer):Cls_Polin; //no le veo la necesidad de q sea publico
@@ -57,7 +57,6 @@ Type
          function cotaInfPosNewton():extended;
          function cotaSupNegNewton():extended;
          function cotaInfNegNewton():extended;
-
          const SALTO=0.5;
 end;
 
@@ -65,18 +64,18 @@ implementation
 USES
     sysutils;
 
-Constructor Cls_Polin.Crear(Grado: integer= 5; Mascara: integer= 0; Visualizar_A0: boolean= false);
+Constructor Cls_Polin.Crear(Grad: integer= 5; Mascara: integer= 0; Visualizar_A0: boolean= false);
 Begin
-     self.Coeficientes:= Cls_Vector.Crear(Grado+1);
-     self.NRaices:= Cls_Matriz.Crear(2,Grado);
+     self.Coeficientes:= Cls_Vector.Crear(Grad+1);
+     self.NRaices:= Cls_Matriz.Crear(2,Grad);
      self.Masc:= Mascara; // si es 0 muestra todos los digitos decimales
      self.Band_A0:= Visualizar_A0;
 end;
 
 Procedure cls_Polin.Redimensionar(Grad: integer);
 Begin
-     self.Coef.Redimensionar(Grado+1);
-     self.NRaices.Redimensionar(2,Grado+1);
+     self.Coef.Redimensionar(Grad+1);
+     self.NRaices.Redimensionar(2,Grad);
 end;
 
 Function cls_Polin.SuperScript(indice: integer): AnsiString;

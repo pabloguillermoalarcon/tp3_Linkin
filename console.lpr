@@ -10,7 +10,8 @@ USES
 VAR
     M,M2,M3: cls_Matriz;
     V, V2: cls_vector;
-    pol_n, divi,coc,rest: cls_polin;
+    pol_n, divi,coc,rest, B,C: cls_polin;
+    i: integer;
 BEGIN
 
 {************************* <<< Leeme.txt >>> ********************************
@@ -41,12 +42,39 @@ N5: PolinD basicamente es un vector dinamico de extended
    pol_N.Coef.cells[2]:= 15;
    pol_N.Coef.cells[1]:= 5;
    pol_N.Coef.cells[0]:= -26;
+   writeln('Grado: ',Pol_N.Grado());
+   writeln('Coef_N: ',Pol_N.coef.N);
+   Pol_N.band_A0:= False;
+   Pol_N.Coef.mostrar('Coef');
+   WriteLN(Pol_N.Coef_To_String());
 
-   Pol_N.Raices.Limpia(4);
-   Pol_N.Raices.cells[0,0]:= -4;
-   Writeln('Raices Bairstow: ',Pol_N.Raices_To_String());
-   Pol_N.bairstow(0.0001,-1.01,2.01,3);
-   Pol_N.Raices.Mostrar('Raices');
-   Writeln('Raices Bairstow: ',Pol_N.Raices_To_String());
+   divi:= cls_Polin.Crear(2);
+   divi.Coef.cells[2]:= 1;
+   divi.Coef.cells[1]:= -1;
+   divi.Coef.cells[0]:= 1;
+   writeln('Grado: ',divi.Grado());
+   writeln('Coef_N: ',divi.coef.N);
+   divi.band_A0:= False;
+   divi.Coef.mostrar('Coef');
+   WriteLN(divi.Coef_To_String());
+
+   Rest:= cls_Polin.Crear(divi.Grado()-1);
+   Rest.Band_A0:= False;
+   Coc:= cls_Polin.Crear(Pol_N.Grado() - Divi.Grado());
+   Coc.Band_A0:= False;
+
+   Pol_N.hornerCuadratico(divi,coc,rest);
+
+   Writeln('<<< Coc >>>');
+   writeln('GradoCoc: ',coc.Grado());
+   writeln('cocoef_N: ',coc.coef.N);
+   coc.coef.mostrar('coef');
+   WriteLN(coc.coef_To_String());
+
+   Writeln('<<< rest >>>');
+   writeln('GradoRest: ',rest.Grado());
+   writeln('RestoCoef_N: ',rest.Coef.N);
+   rest.Coef.mostrar('restCoef');
+   WriteLN(rest.coef_To_String());
    readln;
-END.                  *
+END.
