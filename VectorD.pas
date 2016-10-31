@@ -275,21 +275,21 @@ Var
      i: integer;
      cad,aux: string;
 Begin
-     case mascara of
+     case mascara of //Mascara Optima elimina los 0 demas
      0: Begin
              for i:=0 to N do
-                 cad:= cad + ' ' + FloatToStr(cells[i]);
+                 cad:= cad + '  ' + FloatToStr(cells[i]);
      end;
-     11: Begin
+     11: Begin  //sin mascara
              for i:=0 to N do Begin
                  STR(cells[i],aux);
-                 cad:= cad + ' ' +aux;
+                 cad:= cad + '  ' +aux;
              end;
      end;
-     else Begin
+     else Begin //con Mascara controlando digitos decimales
              for i:=0 to N do Begin
                  STR(cells[i]:0:Mascara, aux);
-                 cad:= cad + ' ' + aux;
+                 cad:= cad + '  ' + aux;
              end;
      end;
      end; //case

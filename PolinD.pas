@@ -14,17 +14,16 @@ Type
   Private
          Coeficientes: cls_Vector; // vector de Coeficientes [Ao,...,An]
          Nraices: cls_Matriz; //Matriz de 2 x N para las raices, Parte Real y Parte Im
-         Function SuperScript(indice: integer): AnsiString;
   Public
          band_A0: boolean; //indica si se visualiza [a0,...,aN]=TRUE; [aN,...,a0]=FALSE
          Masc: integer; //Mascara: guarda la cantidad de decimales para mostrar cuando se convierte con Coef_To_String()
-         constructor Crear(Grado: integer = 5; Mascara: integer=0; Visualizar_A0:boolean = false);
+         constructor Crear(Grad: integer = 5; Mascara: integer=0; Visualizar_A0:boolean = false);
          Property Coef: cls_Vector READ Coeficientes WRITE Coeficientes;
          Property Raices: Cls_Matriz READ Nraices WRITE Nraices;
-         Function Grado(): integer; //Devuelve el grado del polinomio
          Procedure Redimensionar(Grad: integer);
+         Function Grado(): integer; //Devuelve el grado del polinomio
          procedure Copiar(Polin2: cls_Polin); //pol:= polin2
-         function Clon():cls_Polin; //pol:= polin2
+         function Clon():cls_Polin; //polin2:= pol
          procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          Function Raices_To_String(): String;
@@ -35,28 +34,38 @@ Type
          function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
          procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
-         procedure raicesEnteras(P:Cls_Vector; var B:Cls_Vector);//Devuelve todas las raices enteras de un polinomio,en caso de no tener raices preguntar si B.N=-1
-         procedure raicesRacionales(Pol:Cls_Vector; var RR:Cls_Vector);//Devuelve todas las racices racionales de un polinomio,en caso de no tener raices preguntar si B.N=0
          procedure Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          procedure Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          function cotasNewton():cls_Vector;
-         function determinante():extended;
-         procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
-         procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD
          procedure bairstow(error:extended; r:extended; s:extended; max_iter:integer);
   private
+         function determinante():extended;//Bairstow
+         procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD, es para Bairstow
+         procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
+         Function SuperScript(indice: integer): AnsiString;
          //hornerCuad es llamado por hornerCuadratico()
          function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function subPolin(posini:integer;cant:integer):Cls_Polin; //no le veo la necesidad de q sea publico
          //metodos de cambio de variable...
-         function New1():cls_polin;
-         function New2():cls_polin;
-         function New3():cls_polin;
+         procedure polNew1(Pol:Cls_Vector; var newPol:Cls_Vector);
+         procedure polNew2(Pol:Cls_Vector;var newPol:Cls_Vector);
+         procedure polNew3(Pol:Cls_Vector;var newPol:Cls_Vector);
          //SubFunciones Cotas para Newton
          function cotaSupPosNewton():extended;
          function cotaInfPosNewton():extended;
          function cotaSupNegNewton():extended;
          function cotaInfNegNewton():extended;
+
+         //SubFunciones Cotas para Lagrange
+         function cotaInfPosLagrangue(Pol:Cls_Vector):extended;
+         function cotaSupNegLagrangue(Pol:Cls_Vector):extended;
+         function cotaInfNegLagrangue(Pol:Cls_Vector):extended;
+
+         //SubFunciones Cotas para Laguerre
+         function cotaSupPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
+         function cotaSupNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
+         function cotaInfPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
+         function cotaInfNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
 
          const SALTO=0.5;
 end;
@@ -65,18 +74,18 @@ implementation
 USES
     sysutils;
 
-Constructor Cls_Polin.Crear(Grado: integer= 5; Mascara: integer= 0; Visualizar_A0: boolean= false);
+Constructor Cls_Polin.Crear(Grad: integer= 5; Mascara: integer= 0; Visualizar_A0: boolean= false);
 Begin
-     self.Coeficientes:= Cls_Vector.Crear(Grado+1);
-     self.NRaices:= Cls_Matriz.Crear(2,Grado);
+     self.Coeficientes:= Cls_Vector.Crear(Grad+1);
+     self.NRaices:= Cls_Matriz.Crear(2,Grad);
      self.Masc:= Mascara; // si es 0 muestra todos los digitos decimales
      self.Band_A0:= Visualizar_A0;
 end;
 
 Procedure cls_Polin.Redimensionar(Grad: integer);
 Begin
-     self.Coef.Redimensionar(Grado+1);
-     self.NRaices.Redimensionar(2,Grado+1);
+     self.Coef.Redimensionar(Grad+1);
+     self.NRaices.Redimensionar(2,Grad);
 end;
 
 Function cls_Polin.SuperScript(indice: integer): AnsiString;
@@ -215,14 +224,18 @@ begin
 end;
 
 function Cls_Polin.evaluar(x:extended):extended;
-var
-    aux:extended;
-    i:integer;
+Var
+   divi,coc,res: cls_Polin;
 begin
-    aux:=self.Coef.cells[self.Grado];
-    for i:=self.Grado()-1 downto 0 do
-    	aux:=aux*x+self.Coef.cells[i];
-    result:=aux;
+    if (self.Grado() > 0) then Begin
+        divi:= cls_Polin.Crear(1);
+        divi.Coef.cells[1]:= 1;
+        divi.Coef.cells[0]:= -X;
+        coc:= cls_Polin.Crear(self.Grado() -1);
+        res:= cls_Polin.Crear(0);
+        self.ruffini(divi,coc,res);
+        Result:= res.Coef.cells[0];
+     end else Result:= self.Coef.cells[0];
 end;
 
 function cls_Polin.derivada():cls_Polin;
@@ -343,7 +356,7 @@ var                                                                       // en 
 begin
   B.cells[0]:= A.cells[0];
   For k:= 1 to A.N do
-      B.cells[k]:= A.cells[k]+ (B.cells[k-1]*X);
+      B.cells[k]:= A.cells[k]+(B.cells[k-1]*X);
   B.N:=k;
 end;
 //Funcion que Evalua un polinomio
@@ -357,25 +370,29 @@ begin
 end;
 PROCEDURE detDivPos(num:integer;var Vec:Cls_Vector);
 var
-  i,j:byte;
+  i,j:integer;
 begin
   j:=0;
-  Vec.cells[j]:=1;
-  for i:=2 to num div 2 do
-    if(num mod i = 0) then
+  if (num<>1) and (num<>-1)then
+    if num<>0 then
       begin
+        Vec.cells[j]:=1;
+        for i:=2 to num div 2 do
+           if(num mod i = 0) then
+           begin
+             j:=j+1;
+             Vec.cells[j]:=i;
+           end;
         j:=j+1;
-        Vec.cells[j]:=i;
-      end;
-  if num<>1 then
-    begin
-      j:=j+1;
-      Vec.cells[Vec.N]:=num;
-    end;
+        Vec.cells[j]:=num;
+      end
+    else
+      Vec.cells[j]:=0
+  else
+    Vec.cells[j]:=1;
   Vec.N:=j;
 end;
-
-procedure Cls_Polin.PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
+procedure cls_Polin.PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
 var ult,i:byte;
 begin
   detDivPos(trunc(P.cells[P.N]),C);
@@ -387,94 +404,57 @@ begin
       C.cells[ult]:=C.cells[i]*-1;
     end;
   C.N:=ult;
-end;  
-procedure cls_polin.raicesEnteras(P:Cls_Vector; var B:Cls_Vector);
-var i,j:integer;
-    C:Cls_Vector;
-begin
-  j:=0;
-  C:= Cls_Vector.crear(100);
-  PosiblesRaicesEnteras(P,C);
-  For i:=0 to C.N do
-     if (EvaluarPolinomio(P,C.cells[i])=0) then
-        begin
-           B.cells[j]:= C.cells[i];
-           j:=j+1;
-        end;
-  B.N:=j-1;
-  C.destroy();
 end;
-procedure Cls_Polin.PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
+procedure cls_Polin.PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
 var
   i,j,k:byte;
   DTI,DTP:Cls_Vector;
   TP,TI:integer;
-  PR:double;
+  PR:extended;
 begin
   TP:=trunc(Pol.cells[0]);//La parte entera del Termino principal
   TI:=trunc(Pol.cells[Pol.N]);//La parte entera del Termino Independiente
-  DTI:=Cls_Vector.crear(2*TI);//Se multiplica por 2 pensando en que a lo sumo un numero tendra el doble de divisores y no mas ej:2 es divisor de 1,2,-1,-2
-  DTP:=Cls_Vector.crear(2*TP);
-  detDivPos(TI,DTI);//Determina los Divisores positivos del termino Independiente
-  detDivPos(TP,DTP);//Determina los Divisores positivos del termino Principal
-  k:=0;//Inicializa indice k que me llevara las posiciones del vector de PRR:Posibles raices Racionales
-  for i:=0 to DTI.N do//Este For maneja al vector DTI:Divisores del Termino Independiente
-    for j:=0 to DTP.N do//Este for maneja al vector DTP:Divisores del Termino Principal
-      begin
-        PR:=DTI.cells[i]/DTP.cells[j];//calcula la PR:Posibles raiz
-        if (PR<>trunc(PR)) then//Pregunta si el numero no es un entero entonces
+  if TI<>0 then
+    begin
+      DTI:=Cls_Vector.crear(TI+2);
+      DTP:=Cls_Vector.crear(TP+2);
+      detDivPos(TI,DTI);//Determina los Divisores positivos del termino Independiente
+      detDivPos(TP,DTP);//Determina los Divisores positivos del termino Principal
+      k:=0;//Inicializa indice k que me llevara las posiciones del vector de PRR:Posibles raices Racionales
+      for i:=0 to DTI.N do//Este For maneja al vector DTI:Divisores del Termino Independiente
+        for j:=0 to DTP.N do//Este for maneja al vector DTP:Divisores del Termino Principal
           begin
-            k:=k+2;//incrementa indice k
-            PRR.cells[k]:=PR;//Asigna la posible raiz positiva al vector de PRR:Posibles raices Racionales
-            PRR.cells[k+1]:=-PR;//Asigna la posible raiz negativa al vector de PRR:Posibles raices Racionales
+            PR:=DTI.cells[i]/DTP.cells[j];//calcula la PR:Posibles raiz
+            if (PR<>trunc(PR)) then//Pregunta si el numero no es un entero entonces
+              begin
+                PRR.cells[k]:=PR;//Asigna la posible raiz positiva al vector de PRR:Posibles raices Racionales
+                PRR.cells[k+1]:=-PR;//Asigna la posible raiz negativa al vector de PRR:Posibles raices Racionales
+                k:=k+2;//incrementa indice k
+              end;
           end;
-      end;
-  DTI.destroy();
-  DTP.destroy();
-  PRR.N:=k;//Asigna el tamaño o la cantidad de elementos del vector de PRR:posibles raices racionales
-end;
-PROCEDURE cls_polin.raicesRacionales(Pol:Cls_Vector; var RR:Cls_Vector);
-var
-  i,j:byte;
-  E:double;
-  PRR:Cls_Vector;
-begin
-  E:=0.000001;//Error tomado en caso de que no me de exactamente cero el resto
-  j:=0;//Inicia la posicion del vector RR:Raices Racionales
-  PRR:=Cls_Vector.crear(100);
-  PosiblesRaicesRacionales(Pol,PRR);//se devuelve un vector cargado PRR: de las Posibles Raices Racionales
-  For i:=0 to PRR.N do
-     if ( (EvaluarPolinomio(Pol,PRR.cells[i])>=0) and (EvaluarPolinomio(Pol,PRR.cells[i])<E) ) then
-        begin
-          j:=j+1;
-          RR.cells[j]:=PRR.cells[i];
-        end;
-  PRR.destroy();
-  RR.N:=j;
+      DTI.destroy();
+      DTP.destroy();
+      PRR.N:=k-1;//Asigna el tamaño o la cantidad de elementos del vector de PRR:posibles raices racionales
+    end
+  else
+    begin
+      PRR.cells[0]:=0;
+      PRR.N:=0;
+    end;
 end;
 //Este metodo se encargar de realizar el cambio de variable 1/t y multiplicarla por t^n y asi obtener un nuevo polinomio en funcion de t
-procedure polNew1(Pol:Cls_Vector; var newPol:Cls_Vector);
+procedure cls_polin.polNew1(Pol:Cls_Vector; var newPol:Cls_Vector);
 var
   i:byte;
 begin
   for i:=Pol.N downto 0 do
     newPol.cells[Pol.N-i]:=Pol.cells[i];
+  if newPol.cells[0]<0 then
+    for i:=Pol.N downto 0 do
+      newPol.cells[i]:=newPol.cells[i]*-1;
 end;
-//lo mismo q el anterior pero aplicado al polinomio y retorna un polinomio
-function cls_Polin.New1():cls_polin;
-var
-	pAux:cls_polin;
-    vAux:cls_Vector;
-begin
-	pAux:=cls_Polin.crear(self.Grado);
-    vAux:=cls_vector.crear(self.Grado+1);
-    polNew1(self.coef,vAux);
-    pAux.coef:=vAux;
-    result:=pAux;
-end;
-
 //Este metodo se encargar de realizar el cambio de variable -1/t y multiplicarla por t^n y asi obtener un nuevo polinomio en funcion de t
-procedure polNew2(Pol:Cls_Vector;var newPol:Cls_Vector);
+procedure cls_Polin.polNew2(Pol:Cls_Vector;var newPol:Cls_Vector);
 var
   i,j:byte;
 begin
@@ -486,21 +466,12 @@ begin
       else
          newPol.cells[j]:=Pol.cells[i]*-1;
     end;
+  if newPol.cells[0]<0 then
+    for i:=Pol.N downto 0 do
+      newPol.cells[i]:=newPol.cells[i]*-1;
 end;
-function cls_Polin.New2():cls_polin;
-var
-	pAux:cls_polin;
-    vAux:cls_Vector;
-begin
-	pAux:=cls_Polin.crear(self.Grado);
-    vAux:=cls_vector.crear(self.Grado+1);
-    polNew2(self.coef,vAux);
-    pAux.coef:=vAux;
-    result:=pAux;
-end;
-
 //Este metodo se encargar de realizar el cambio de variable -t asi obtener un nuevo polinomio en funcion de t
-procedure polNew3(Pol:Cls_Vector;var newPol:Cls_Vector);
+procedure cls_Polin.polNew3(Pol:Cls_Vector;var newPol:Cls_Vector);
 var
   i:byte;
 begin
@@ -509,17 +480,9 @@ begin
       newPol.cells[i]:=Pol.cells[i]
     else
        newPol.cells[i]:=Pol.cells[i]*-1;
-end;
-function cls_Polin.New3():cls_polin;
-var
-	pAux:cls_polin;
-    vAux:cls_Vector;
-begin
-	pAux:=cls_Polin.crear(self.Grado);
-    vAux:=cls_vector.crear(self.Grado+1);
-    polNew3(self.coef,vAux);
-    pAux.coef:=vAux;
-    result:=pAux;
+  if newPol.cells[0]<0 then
+    for i:=Pol.N downto 0 do
+      newPol.cells[i]:=newPol.cells[i]*-1;
 end;
 
 //funcion que devuelve el menor coegficiente negativo del polinomio
@@ -558,11 +521,11 @@ begin
   M:=abs(coefNegMenor(Pol));
   TP:=Pol.cells[0];
   if (K<>-1) and (M<>0) and (TP<>0) then
-     cotaSupPosLagrangue:=1+exp(1/K*ln(M/TP))
+     cotaSupPosLagrangue:=1+exp((1/K)*ln(M/TP))
   else
      cotaSupPosLagrangue:=0;
 end;
-function cotaInfPosLagrangue(Pol:Cls_Vector):extended;
+function cls_Polin.cotaInfPosLagrangue(Pol:Cls_Vector):extended;
 var
   newPol:Cls_Vector;
   t:extended;
@@ -575,7 +538,7 @@ begin
   else
      cotaInfPosLagrangue:=0;
 end;
-function cotaSupNegLagrangue(Pol:Cls_Vector):extended;
+function cls_Polin.cotaSupNegLagrangue(Pol:Cls_Vector):extended;
 var
   newPol:Cls_Vector;
   t:extended;
@@ -588,7 +551,7 @@ begin
   else
      cotaSupNegLagrangue:=0;
 end;
-function cotaInfNegLagrangue(Pol:Cls_Vector):extended;
+function cls_Polin.cotaInfNegLagrangue(Pol:Cls_Vector):extended;
 var
    newPol:Cls_Vector;
    t:extended;
@@ -601,91 +564,101 @@ begin
   else
      cotaInfNegLagrangue:=0;
 end;
-procedure cls_polin.Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);
+procedure cls_Polin.Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);
 begin
   cota.cells[0]:=cotaSupPosLagrangue(Pol);
-  cota.cells[1]:=cotaSupNegLagrangue(Pol);
+  cota.cells[1]:=cotaInfPosLagrangue(Pol);
   cota.cells[2]:=cotaInfNegLagrangue(Pol);
   cota.cells[3]:=cotaSupNegLagrangue(Pol);
+  cota.N:=3;
 end;
 
-
-
-
-function cotaSupPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
+function cls_Polin.cotaSupPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
 var
    B: Cls_Vector;
-   i:byte;
+   i,band:byte;
 begin
   B:=Cls_Vector.crear(100);
   ruffiniEvaluador(Pol,B,X);
-  i:=0;
-  while(i<=B.N-1) and (B.cells[i]<0) do//Ponemos B.N-1 porque no quiero analizar el resto
-      i:=i+1;
-  if i>B.N-1 then
-     CotaSupPosLaguerre:=X
+  band:=0;
+  for i:=0 to B.N-1 do
+    if B.cells[i]<0 then
+      band:=1;
+  if band=1 then
+    cotaSupPosLaguerre:=0
   else
-     cotaSupPosLaguerre:=0;
+     CotaSupPosLaguerre:=X;
+  B.destroy();
 end;
-function cotaInfPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
+function cls_Polin.cotaInfPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
 var
-   i:byte;
+   i,band:byte;
    newPol,B:Cls_Vector;
 begin
   newPol:=Cls_Vector.crear(100);
   B:=Cls_Vector.crear(100);
   polNew1(Pol,newPol);
   ruffiniEvaluador(newPol,B,1/X);
-  i:=0;
-  while(i<=B.N-1) and (B.cells[i]<0) do//Ponemos B.N-1 porque no quiero analizar el resto
-      i:=i+1;
-  if i>B.N-1 then
-     CotaInfPosLaguerre:=X
+  band:=0;
+  for i:=0 to B.N-1 do
+    if B.cells[i]<0 then
+      band:=1;
+  if band=1 then
+    cotaInfPosLaguerre:=0
   else
-     cotaInfPosLaguerre:=0;
+     CotaInfPosLaguerre:=X;
 end;
-function cotaSupNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
+
+function cls_Polin.cotaSupNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
 var
-   i:byte;
+   i,band:byte;
    newPol,B:Cls_Vector;
 begin
   newPol:=Cls_Vector.crear(100);
   B:=Cls_Vector.crear(100);
   polNew2(Pol,newPol);
   ruffiniEvaluador(newPol,B,-1/X);
-  i:=0;
-  while(i<=B.N-1) and (B.cells[i]<0) do//Ponemos B.N-1 porque no quiero analizar el resto
-      i:=i+1;
-  if i>B.N-1 then
-     CotaSupNegLaguerre:=X
+  band:=0;
+  for i:=0 to B.N-1 do
+    if B.cells[i]<0 then
+      band:=1;
+  if band=1 then
+    cotaSupNegLaguerre:=0
   else
-     cotaSupNegLaguerre:=0;
+     CotaSupNegLaguerre:=X;
 end;
-function cotaInfNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
+function cls_Polin.cotaInfNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
 var
-  i:byte;
+  i,band:byte;
   newPol,B:Cls_Vector;
 begin
   newPol:=Cls_Vector.crear(100);
   B:=Cls_Vector.crear(100);
-  polNew2(Pol,newPol);
+  polNew3(Pol,newPol);
   ruffiniEvaluador(newPol,B,-1*X);
-  i:=0;
-  while(i<=B.N-1) and (B.cells[i]<0) do//Ponemos B.N-1 porque no quiero analizar el resto
-      i:=i+1;
-  if i>B.N-1 then
-     CotaInfNegLaguerre:=X
+  writeln(b.N);
+  writeln(b.cells[0]);
+  writeln(b.cells[1]);
+  writeln(b.cells[2]);
+  writeln(b.cells[3]);
+  writeln(b.cells[4]);
+  band:=0;
+  for i:=0 to B.N-1 do
+    if B.cells[i]<0 then
+      band:=1;
+  if band=1 then
+    cotaInfNegLaguerre:=0
   else
-     cotaInfNegLaguerre:=0;
+     CotaInfNegLaguerre:=X;
 end;
-procedure cls_polin.Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);
+procedure cls_Polin.Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);
 begin
   cota.cells[0]:=cotaSupPosLaguerre(Pol,X);
-  cota.cells[1]:=cotaSupNegLaguerre(Pol,X);
-  cota.cells[2]:=cotaInfNegLaguerre(Pol,X);
-  cota.cells[3]:=cotaSupNegLaguerre(Pol,X);
-
-end;
+  cota.cells[1]:=cotaInfPosLaguerre(Pol,X);
+  cota.cells[2]:=cotaSupNegLaguerre(Pol,X);
+  cota.cells[3]:=cotaInfNegLaguerre(Pol,X);
+  cota.N:=3;
+end;  
 function cls_Polin.cotaSupPosNewton():extended;
 var
 	pAux:cls_Polin;
@@ -710,13 +683,14 @@ end;
 
 function cls_Polin.cotaInfPosNewton():extended;
 var
-    pAux:cls_Polin;
+    pAux:cls_Vector;
     cota:extended;
 begin
-	pAux:=self.New1();
-    if (pAux.coef.cells[pAux.grado]<0) then
-    	pAux.Coef.xEscalar(-1);
-    cota:=pAux.cotaSupPosNewton();
+     pAux:= cls_Vector.crear(self.Grado()+1);
+     PolNew1(self.Coef,Paux);
+    if (pAux.cells[pAux.N]<0) then
+    	pAux.xEscalar(-1);
+    cota:=self.cotaSupPosNewton();
     if cota>0 then
     	result:=1/cota
     else
@@ -725,13 +699,14 @@ end;
 
 function cls_Polin.cotaSupNegNewton():extended;
 var
-    pAux:cls_Polin;
+    pAux:cls_vector;
     cota:extended;
 begin
-	pAux:=self.New2();
-    if (pAux.coef.cells[pAux.grado]<0) then
-    	pAux.Coef.xEscalar(-1);
-    cota:=pAux.cotaSupPosNewton();
+     pAux:= cls_Vector.crear(self.Grado()+1);
+     polNew2(self.coef,Paux);
+    if (pAux.cells[pAux.N]<0) then
+    	pAux.xEscalar(-1);
+    cota:=self.cotaSupPosNewton();
     if cota>0 then
     	result:=-1/cota
     else
@@ -740,13 +715,14 @@ end;
 
 function cls_Polin.cotaInfNegNewton():extended;
 var
-    pAux:cls_Polin;
+    pAux:cls_vector;
     cota:extended;
 begin
-	pAux:=self.New3();
-    if (pAux.coef.cells[pAux.grado]<0) then
-    	pAux.Coef.xEscalar(-1);
-    cota:=pAux.cotaSupPosNewton();
+     pAux:= cls_Vector.crear(self.Grado()+1);
+	self.polNew3(self.Coef, pAux);
+    if (pAux.cells[pAux.N]<0) then
+    	pAux.xEscalar(-1);
+    cota:=self.cotaSupPosNewton();
     if cota>0 then
     	result:=cota*(-1)
     else
@@ -918,7 +894,7 @@ end;
 
 Function cls_Polin.Raices_To_String(): String;
 Var
-    cad, real, imag: String;
+    cad: String;
     i: integer;
 Begin
     for i:=1 to Grado do Begin

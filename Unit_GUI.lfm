@@ -1,11 +1,11 @@
 object Form1: TForm1
-  Left = 332
-  Height = 391
-  Top = 181
+  Left = 420
+  Height = 417
+  Top = 154
   Width = 771
   BorderStyle = bsSingle
   Caption = 'Tp3 - Linkin'
-  ClientHeight = 356
+  ClientHeight = 382
   ClientWidth = 771
   KeyPreview = True
   Menu = MainMenu1
@@ -73,6 +73,7 @@ object Form1: TForm1
       object Item_Div2: TMenuItem
         Caption = 'Dividir x Polinomio Monico Grado 2'
         ShortCut = 8242
+        OnClick = Item_Div2Click
       end
       object Salir: TMenuItem
         Caption = 'Salir'
@@ -88,21 +89,14 @@ object Form1: TForm1
       end
       object Raices_Racionales_Item: TMenuItem
         Caption = 'Posibles Racionales'
+        OnClick = Raices_Racionales_ItemClick
       end
       object Cotas: TMenuItem
         Caption = 'Cotas'
-        object MenuItem4: TMenuItem
-          Caption = 'New Item11'
-        end
-        object MenuItem5: TMenuItem
-          Caption = 'New Item12'
-        end
-        object Sturm_Item: TMenuItem
-          Caption = 'New Item13'
-        end
       end
       object Bairstrow_Item: TMenuItem
         Caption = 'Bairstrow'
+        OnClick = Bairstrow_ItemClick
       end
     end
   end

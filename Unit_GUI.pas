@@ -32,15 +32,14 @@ type
     Raices_Menu: TMenuItem;
     Cotas: TMenuItem;
     Bairstrow_Item: TMenuItem;
-    MenuItem4: TMenuItem;
-    MenuItem5: TMenuItem;
-    Sturm_Item: TMenuItem;
     Pol_N_Main_Menu: TMenuItem;
     item_invertir: TMenuItem;
     Item_Div1: TMenuItem;
     Item_Div2: TMenuItem;
+    procedure Bairstrow_ItemClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: char);
+    procedure Item_Div2Click(Sender: TObject);
     procedure Item_EditarClick(Sender: TObject);
     procedure Item_invertirClick(Sender: TObject);
     procedure Item_Div1Click(Sender: TObject);
@@ -50,10 +49,10 @@ type
     procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
     procedure Raices_Enteras_ItemClick(Sender: TObject);
+    procedure Raices_Racionales_ItemClick(Sender: TObject);
     procedure SalirClick(Sender: TObject);
     Procedure Check_Enabled();
     procedure X_LabelClick(Sender: TObject);
-    Function Calcular_Px(): extended;
   private
     { private declarations }
   public
@@ -62,7 +61,7 @@ type
      Pol_N_load: boolean;
      MIN_MASC: byte;
      MAX_MASC: byte;
-     X: extended;
+     X: extended;  //Sirve para Evalua el Polinomio en un X --->Calcular_Px()
   end;
 
 var
@@ -85,6 +84,16 @@ begin
      self.check_enabled();
 end;
 
+procedure TForm1.Bairstrow_ItemClick(Sender: TObject);
+begin
+     if Pol_N_load then Begin;
+        if Pol_N.Grado()>2 then Begin
+           Pol_N.bairstow(0.0000000001,0,0,1000);
+           showmessage(Pol_N.Raices_To_String());
+        end else ShowMessage('Bairstow: Tiene que ingresar un Polinomio de grado mayor a 2');
+     end;
+end;
+
 procedure TForm1.FormKeyPress(Sender: TObject; var Key: char);
 begin
   if (key = #27) then
@@ -93,14 +102,14 @@ end;
 
 procedure TForm1.Item_EditarClick(Sender: TObject);
 begin
-     //Tambien accede aqui menuItem--->Editar (Pol_N)
+     //Tambien accede aqui onClick--->Pol_N_Memo
      Form2:= TForm2.Crear(Nil, Pol_N, 0);
      Form2.ShowModal;
      if (Form2.ModalResult = mrOk) then Begin
          self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
          Self.Caption:='Tp3 - Linkin - Polinomio << Grado '+IntToStr(Pol_N.Grado())+' >>';
          X:= 0;
-         X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+         X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
          Self.Pol_N_load:= true;
          self.check_enabled();
      end;
@@ -117,7 +126,21 @@ begin
      Form3:= nil;
      Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
      X:= 0;
-     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
+     Self.Visible:= True;
+     self.check_enabled();
+end;
+
+procedure TForm1.Item_Div2Click(Sender: TObject);
+begin
+     Self.Visible:= False;
+     Form3:= TForm3.Crear(nil,Pol_N,2);
+     Form3.ShowModal;
+     Form3.Free;
+     Form3:= nil;
+     Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+     X:= 0;
+     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
      Self.Visible:= True;
      self.check_enabled();
 end;
@@ -165,6 +188,17 @@ begin
      enteras.Destroy;
 end;
 
+procedure TForm1.Raices_Racionales_ItemClick(Sender: TObject);
+Var
+  racionales: cls_Vector;
+begin
+     racionales:= Cls_Vector.Crear();
+     //Pol_N.raicesracionales(Pol_N.Coef,racionales);
+     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,Racionales);
+     showmessage('Posibles Raices racionales: ' + racionales.ToString(2));
+     racionales.Destroy;
+end;
+
 procedure TForm1.SalirClick(Sender: TObject);
 begin
      self.Close;
@@ -206,20 +240,8 @@ begin
      if (cad <> '') then Begin
         Val(cad,X,pos);
         if (pos=0) then
-           X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+           X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
      end;
-end;
-Function TForm1.Calcular_Px(): extended;
-var
-  divi,coc,res: cls_polin;
-Begin
-     divi:= cls_Polin.Crear(1);
-     divi.Coef.cells[1]:= 1;
-     divi.Coef.cells[0]:= -X;
-     coc:= cls_Polin.Crear(self.Pol_N.Grado() -1);
-     res:= cls_Polin.Crear(0);
-     Pol_N.ruffini(divi,coc,res);
-     Result:= res.Coef.cells[0];
 end;
 
 BEGIN

@@ -8,6 +8,9 @@ uses
   {$ENDIF}{$ENDIF}
   Classes, Forms, StdCtrls, PolinD;
 type
+
+  { TForm3 }
+
   TForm3 = class(TForm)
     Pol_N_GroupBox: TGroupBox;
     Divisor_GroupBox: TGroupBox;
@@ -75,12 +78,12 @@ Begin
       self.Resto_GroupBox.Caption:= 'Resto';
       case (Tipo_Polin) of
            1: Begin
-                    Divisor_GroupBox.Caption:= 'Divisor << Grado 1 >> Monico X+a';
+                    Divisor_GroupBox.Caption:= 'Divisor << Grado 1 >> Monico X-a';
                     Divisor:= cls_Polin.Crear(1);
                     Divisor.Coef.cells[1]:= 1;
            end;
            2: Begin
-                    Divisor_GroupBox.Caption:= 'Divisor << Grado 2 >> Monico X^2+rX+s';
+                    Divisor_GroupBox.Caption:= 'Divisor << Grado 2 >> Monico X^2-rX-s';
                     Divisor:= cls_Polin.Crear(2);
                     Divisor.Coef.cells[2]:= 1;
            end;
@@ -110,20 +113,31 @@ end;
 
 procedure TForm3.Divisor_GroupBoxDblClick(Sender: TObject);
 begin
-     showmessage('Doble click');
      if (Tipo_Polin=1) then Begin
-        Divisor_GroupBox.Caption:= 'Divisor << Grado 2 >> Monico X^2+rX+s';
+        Divisor_GroupBox.Caption:= 'Divisor << Grado 2 >> Monico X^2-rX-s';
         Divisor.Free;
         Divisor:= cls_Polin.crear(2);
         Divisor.Coef.cells[2]:= 1;
         Tipo_Polin:=2;
      end else Begin
-         Divisor_GroupBox.Caption:= 'Divisor << Grado 1 >> Monico X+a';
+         Divisor_GroupBox.Caption:= 'Divisor << Grado 1 >> Monico X-a';
          Divisor.Free;
          Divisor:= cls_Polin.crear(1);
          Divisor.Coef.cells[1]:= 1;
          Tipo_Polin:=1;
      end;
+     case(Tipo_Polin) of
+          1: Form2:= TForm2.Crear(Nil, Divisor, 1);
+          2: Form2:= TForm2.Crear(Nil, Divisor, 2);
+     end;
+     Form2.ShowModal;
+     if (Form2.ModalResult= mrOk) then Begin
+        Divisor_Memo.Lines.Text:= Divisor.Coef_To_String();
+        Divisor_Load:= True;
+        dividir();
+     end;
+     Form2.Free;
+     Form2:= nil; //FreeAndNil(Form2);
 end;
 
 procedure TForm3.Divisor_MemoClick(Sender: TObject);
@@ -143,13 +157,25 @@ begin
 end;
 
 Procedure TForm3.Dividir();
+VAR
+  r, s:extended;
+  PolB, PolC: cls_Polin;
+  i: integer;
 Begin
      if (Polin.Grado() >= Divisor.Grado()) then Begin
         Puedo_Dividir:= True;
+        Cociente.Redimensionar(Polin.Grado()-Divisor.Grado());
      Case (Tipo_Polin) of
-             1: Polin.ruffini(divisor, cociente,resto);
-             2: Polin.ruffini(divisor,cociente,resto);
+             1: Begin
+                     Resto.Redimensionar(0);
+                     Polin.ruffini(Divisor,Cociente,Resto);
+             end;
+             2: Begin
+                     Resto.Redimensionar(1);
+                     Polin.hornerCuadratico(Divisor,Cociente,Resto);
+             end;
      end;
+     //Agrego El Resultado al Formulario en Cociente y Resto
         Cociente_Memo.Lines.Text:= Cociente.Coef_To_String();
         Resto_Memo.Lines.Text:= Resto.Coef_To_String();
         Puedo_Dividir:= True;

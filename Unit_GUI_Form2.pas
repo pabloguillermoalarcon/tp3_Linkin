@@ -122,12 +122,12 @@ Begin
              1: Begin
                      self.Mas.Visible:= False;
                      self.Menos.Visible:= False;
-                     self.Caption:= 'Editar Polinomio << Grado 1 >> Monico X+a'; //Especial Monico Divisor Grado 1: X+a
+                     self.Caption:= 'Editar Polinomio << Grado 1 >> Monico X-a'; //Especial Monico Divisor Grado 1: X+a
              end;
              2: Begin
                       self.Mas.Visible:= False;
                       self.Menos.Visible:= False;
-                      self.Caption:= 'Editar Polinomio << Grado 2 >> Monico X^2+rX+s'; //Especial Monico Divisor Grado 2: X^2+rX+s
+                      self.Caption:= 'Editar Polinomio << Grado 2 >> Monico X^2-rX-s'; //Especial Monico Divisor Grado 2: X^2+rX+s
              end;
      end;
      if (Polin.band_A0)then Begin //Transmite a la Matriz d la Forma [A0,..An]
@@ -146,12 +146,9 @@ procedure TForm2.Load_Coef(Var Pol: cls_Polin);
 Var
    i, j: integer;
 Begin
-     if (Pol=nil) then Pol:= cls_Polin.Crear(Matriz_String.ColCount-2)
-     else Pol.Redimensionar(Matriz_String.ColCount-2);
+     Pol.Redimensionar(Matriz_String.ColCount-2);
      Pol.band_A0:= self.Ban_CoefA0;
-     if ((Mascara_TrackBar.Position= Mascara_TrackBar.Min) or (self.Mascara_TrackBar.Position= self.Mascara_TrackBar.Max)) then
-        Pol.Masc:= 0
-     else Pol.Masc:= self.Mascara_TrackBar.Position;
+     Pol.Masc:= self.Mascara_TrackBar.Position;
      if Pol.band_A0 then Begin
         for i:=1 to self.Matriz_String.ColCount-1 do
             if valida(i) then
@@ -166,7 +163,7 @@ Begin
             inc(j);
          end;
      end;
-  end;
+end;
 procedure TForm2.MenosClick(Sender: TObject);
 (*Matriz_String: tiene los atributos colcount que tiene la cant de columnas pero el subindice comienza en 0
 por eso si tengo 4 columnas --> colcount=4 y los subindices de las columnas van de 0..3
