@@ -32,13 +32,11 @@ type
     Raices_Menu: TMenuItem;
     Cotas: TMenuItem;
     Bairstrow_Item: TMenuItem;
-    MenuItem4: TMenuItem;
-    MenuItem5: TMenuItem;
-    Sturm_Item: TMenuItem;
     Pol_N_Main_Menu: TMenuItem;
     item_invertir: TMenuItem;
     Item_Div1: TMenuItem;
     Item_Div2: TMenuItem;
+    procedure Bairstrow_ItemClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure Item_Div2Click(Sender: TObject);
@@ -54,7 +52,6 @@ type
     procedure SalirClick(Sender: TObject);
     Procedure Check_Enabled();
     procedure X_LabelClick(Sender: TObject);
-    Function Calcular_Px(): extended; //Evalua el Polinomio en un X
   private
     { private declarations }
   public
@@ -86,6 +83,16 @@ begin
      self.check_enabled();
 end;
 
+procedure TForm1.Bairstrow_ItemClick(Sender: TObject);
+begin
+     if Pol_N_load then Begin;
+        if Pol_N.Grado()>2 then Begin
+           Pol_N.bairstow(0.0000000001,0,0,1000);
+           showmessage(Pol_N.Raices_To_String());
+        end else ShowMessage('Bairstow: Tiene que ingresar un Polinomio de grado mayor a 2');
+     end;
+end;
+
 procedure TForm1.FormKeyPress(Sender: TObject; var Key: char);
 begin
   if (key = #27) then
@@ -101,7 +108,7 @@ begin
          self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
          Self.Caption:='Tp3 - Linkin - Polinomio << Grado '+IntToStr(Pol_N.Grado())+' >>';
          X:= 0;
-         X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+         X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
          Self.Pol_N_load:= true;
          self.check_enabled();
      end;
@@ -118,7 +125,7 @@ begin
      Form3:= nil;
      Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
      X:= 0;
-     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
      Self.Visible:= True;
      self.check_enabled();
 end;
@@ -132,7 +139,7 @@ begin
      Form3:= nil;
      Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
      X:= 0;
-     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
      Self.Visible:= True;
      self.check_enabled();
 end;
@@ -221,22 +228,8 @@ begin
      if (cad <> '') then Begin
         Val(cad,X,pos);
         if (pos=0) then
-           X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Calcular_Px());
+           X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
      end;
-end;
-Function TForm1.Calcular_Px(): extended;
-var
-  divi,coc,res: cls_polin;
-Begin
-     if (self.Pol_N.Grado() > 0) then Begin
-        divi:= cls_Polin.Crear(1);
-        divi.Coef.cells[1]:= 1;
-        divi.Coef.cells[0]:= -X;
-        coc:= cls_Polin.Crear(self.Pol_N.Grado() -1);
-        res:= cls_Polin.Crear(0);
-        Pol_N.ruffini(divi,coc,res);
-        Result:= res.Coef.cells[0];
-     end else Result:= Pol_N.Coef.cells[0];
 end;
 
 BEGIN

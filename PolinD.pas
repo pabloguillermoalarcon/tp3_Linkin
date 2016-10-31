@@ -37,11 +37,12 @@ Type
          procedure Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          procedure Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          function cotasNewton():cls_Vector;
-         function determinante():extended;
-         procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
-         procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD
+
          procedure bairstow(error:extended; r:extended; s:extended; max_iter:integer);
   private
+         function determinante():extended;//Bairstow
+         procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD, es para Bairstow
+         procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
          Function SuperScript(indice: integer): AnsiString;
          //hornerCuad es llamado por hornerCuadratico()
          function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
@@ -212,14 +213,18 @@ begin
 end;
 
 function Cls_Polin.evaluar(x:extended):extended;
-var
-    aux:extended;
-    i:integer;
+Var
+   divi,coc,res: cls_Polin;
 begin
-    aux:=self.Coef.cells[self.Grado];
-    for i:=self.Grado()-1 downto 0 do
-    	aux:=aux*x+self.Coef.cells[i];
-    result:=aux;
+    if (self.Grado() > 0) then Begin
+        divi:= cls_Polin.Crear(1);
+        divi.Coef.cells[1]:= 1;
+        divi.Coef.cells[0]:= -X;
+        coc:= cls_Polin.Crear(self.Grado() -1);
+        res:= cls_Polin.Crear(0);
+        self.ruffini(divi,coc,res);
+        Result:= res.Coef.cells[0];
+     end else Result:= self.Coef.cells[0];
 end;
 
 function cls_Polin.derivada():cls_Polin;
