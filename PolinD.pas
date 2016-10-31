@@ -768,23 +768,29 @@ procedure Cls_Polin.horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:
 var
     aux:cls_polin;
     m,i:integer;
+    num,num2,num3:extended;
 begin
     m:=self.Grado();
-    aux:=cls_polin.Crear(m,2,false);
-    aux.Copiar(self);
-    b.Redimensionar(self.Grado());
-    c.Redimensionar(self.Grado());
+    aux:=self.Clon();
     b.Coef.Limpia(0);
     c.Coef.Limpia(0);
     b.Coef.cells[m]:=aux.Coef.cells[m];
-    b.Coef.cells[m-1]:=aux.coef.cells[m-1]+r*b.Coef.cells[m];
     c.Coef.cells[m]:=b.Coef.cells[m];
-    c.Coef.cells[m-1]:=b.coef.cells[m-1]+s*c.Coef.cells[m];
+    num:=r*b.Coef.cells[m];
+    b.Coef.cells[m-1]:=aux.coef.cells[m-1]+num;
+    num2:=(s)*c.Coef.cells[m];
+    c.Coef.cells[m-1]:=b.coef.cells[m-1]+num2;
 
     for i:=m-2 downto 0 do
         begin
-            b.Coef.cells[i]:=aux.Coef.cells[i]+r*b.Coef.cells[i+1]+s*b.Coef.cells[i+2];
-            c.Coef.cells[i]:=b.Coef.cells[i]+r*c.Coef.cells[i+1]+s*c.Coef.cells[i+2];
+            num:=aux.Coef.cells[i];
+            num2:=r*b.Coef.cells[i+1];
+            num3:=s*b.Coef.cells[i+2];
+            b.Coef.cells[i]:=num+num2+num3;
+            num:=b.Coef.cells[i];
+            num2:=r*c.Coef.cells[i+1];
+            num3:=s*c.Coef.cells[i+2];
+            c.Coef.cells[i]:=num+num2+num3;
         end;
     aux.Destroy;
 end;
@@ -800,7 +806,7 @@ procedure cls_polin.cuadratica(r:extended;s:extended;var r1:extended; var i1:ext
 var
     disc:extended;
 begin
-    disc:=r*r-4*s;
+    disc:=r*r+4*s;
     if disc >= 0 then
         begin
             r1:=(r+Sqrt(disc))/2;
@@ -834,14 +840,17 @@ var
     r2:extended;
     i2:extended;
     i:integer;
+    bu:boolean;
+    num,num2:extended;
 begin
-    a:=cls_polin.Crear(self.Grado(),2,false);
-    b:=cls_polin.Crear(self.Grado(),2,false);
-    c:=cls_polin.Crear(self.Grado(),2,false);
-    a.Copiar(self);
+    a:=cls_polin.Crear(self.Grado(),0,false);
+    b:=cls_polin.Crear(self.Grado()+1,0,false);
+    c:=cls_polin.Crear(self.Grado()+1,0,false);
+    a:=self.Clon();
     err_a1:=1;
     err_a2:=2;
     iter:=0;
+
     while ((a.Grado()>2)and(iter<max_iter))do
         begin
             iter:=0;
@@ -869,15 +878,21 @@ begin
                         end;
                 end;
             until (((err_a1<=error)and(err_a2<=error))or(iter<max_iter));
+            r1:=0;
+            i1:=0;
+            r2:=0;
+            i2:=0;
             self.cuadratica(r,s,r1,i1,r2,i2);
             self.Nraices.cells[0,a.Grado()]:=r1;
             self.Nraices.cells[1,a.Grado()]:=i1;
             self.Nraices.cells[0,a.Grado()-1]:=r2;
             self.Nraices.cells[1,a.Grado()-1]:=i2;
+
             for i:=0 to a.Grado()-2 do;
                 a.Coef.cells[i]:=b.Coef.cells[i+2];
-            a.Redimensionar(a.Grado()-2);
+            a.Coef.Redimensionar(Grado()-1);
         end;
+
     if iter<max_iter then
         begin
            if a.Grado()=2 then
@@ -886,9 +901,9 @@ begin
                    s:=-a.Coef.cells[0]/a.Coef.cells[2];
                    self.cuadratica(r,s,r1,i1,r2,i2);
                    self.Nraices.cells[0,a.Grado()]:=r1;
-                    self.Nraices.cells[1,a.Grado()]:=i1;
-                    self.Nraices.cells[0,a.Grado()-1]:=r2;
-                    self.Nraices.cells[1,a.Grado()-1]:=i2;
+                   self.Nraices.cells[1,a.Grado()]:=i1;
+                   self.Nraices.cells[0,a.Grado()-1]:=r2;
+                   self.Nraices.cells[1,a.Grado()-1]:=i2;
                end
            else
                begin
@@ -906,7 +921,7 @@ Var
     cad, real, imag: String;
     i: integer;
 Begin
-    for i:=0 to Grado do Begin
+    for i:=1 to Grado do Begin
        if (Raices.cells[0,i] <>0) then //Parte Real
           cad:= cad + '  '+FloatToStr(Raices.cells[0,i]);
        if (Raices.cells[1,i] <>0) then //Parte Imag
