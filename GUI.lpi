@@ -58,6 +58,7 @@
         <Filename Value="unit_gui_form4_cotas.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form4"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit_GUI_Form4_Cotas"/>
       </Unit3>

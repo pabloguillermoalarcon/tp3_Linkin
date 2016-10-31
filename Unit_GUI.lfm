@@ -89,6 +89,7 @@ object Form1: TForm1
       end
       object Raices_Racionales_Item: TMenuItem
         Caption = 'Posibles Racionales'
+        OnClick = Raices_Racionales_ItemClick
       end
       object Cotas: TMenuItem
         Caption = 'Cotas'

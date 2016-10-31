@@ -49,6 +49,7 @@ type
     procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
     procedure Raices_Enteras_ItemClick(Sender: TObject);
+    procedure Raices_Racionales_ItemClick(Sender: TObject);
     procedure SalirClick(Sender: TObject);
     Procedure Check_Enabled();
     procedure X_LabelClick(Sender: TObject);
@@ -185,6 +186,17 @@ begin
      Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,enteras);
      showmessage('Posibles Raices Enteras: ' + enteras.ToString());
      enteras.Destroy;
+end;
+
+procedure TForm1.Raices_Racionales_ItemClick(Sender: TObject);
+Var
+  racionales: cls_Vector;
+begin
+     racionales:= Cls_Vector.Crear();
+     //Pol_N.raicesracionales(Pol_N.Coef,racionales);
+     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,Racionales);
+     showmessage('Posibles Raices racionales: ' + racionales.ToString(2));
+     racionales.Destroy;
 end;
 
 procedure TForm1.SalirClick(Sender: TObject);
