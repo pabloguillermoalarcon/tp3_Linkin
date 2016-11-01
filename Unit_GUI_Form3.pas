@@ -8,9 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Classes, Forms, StdCtrls, PolinD;
 type
-
   { TForm3 }
-
   TForm3 = class(TForm)
     Pol_N_GroupBox: TGroupBox;
     Divisor_GroupBox: TGroupBox;
@@ -35,8 +33,6 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
-  private
-    { private declarations }
   public
     Polin: cls_Polin;
     Divisor: cls_Polin;
@@ -167,7 +163,9 @@ Begin
         Cociente.Redimensionar(Polin.Grado()-Divisor.Grado());
      Case (Tipo_Polin) of
              1: Begin
-                     Resto.Redimensionar(0);
+                      Resto.Free;
+                      Resto:= nil;
+                     //Resto.Redimensionar(0);
                      Polin.ruffini(Divisor,Cociente,Resto);
              end;
              2: Begin

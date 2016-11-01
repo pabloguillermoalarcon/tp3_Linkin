@@ -6,13 +6,12 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, Unit_GUI, Unit_GUI_Form4_Cotas;
+  Forms, Unit_GUI, Unit_GUI_Form4_Cotas, Unit_GUI_Form3;
 {$R *.res}
 begin
   RequireDerivedFormResource:=True;
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
-  Application.CreateForm(TForm4, Form4);
   Application.Run;
 end.
 

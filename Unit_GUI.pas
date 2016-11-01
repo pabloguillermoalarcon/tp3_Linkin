@@ -1,42 +1,43 @@
 unit Unit_GUI;
 {$mode objfpc}{$H+}
 interface
-
 (*Las Varias principales son tres polinomios:
 Pol_N_Main_Menu: Polinomio Normal: 0<= Grado N <=10
-Pol_Div1: Polinomio Especial, Monico Divisor Grado 1: X+a,
-Pol_Div2: Polinomio Especial Monico Divisor Grado 2: X^2+rX+s
+Pol_Div1: Polinomio Especial, Monico Divisor Grado 1: X-a,
+Pol_Div2: Polinomio Especial Monico Divisor Grado 2: X^2-rX-s
 
 internamente el vector de coeficientes se carga de la forma [A0...AN] siempre
 pero se visualiza de forma predeterminada [An...A0]
 se puede cambiar la visualizacion con la propiedad, band_A0 de cls_Polin
  *)
-
 uses
     {$IFDEF UNIX}{$IFDEF UseCThreads}
     cthreads, cmem
     {$ENDIF}{$ENDIF}
-    Classes, Forms, StdCtrls, Menus, PolinD, Controls;
+    Classes, Forms, StdCtrls, Menus, PolinD, Controls, Types;
 
 type
   { TForm1 }
   TForm1 = class(TForm)
-    X_Label: TLabel;
-    MainMenu1: TMainMenu;
-    Item_Editar: TMenuItem;
-    Item_Limpiar: TMenuItem;
-    Pol_N_Memo: TMemo;
-    Salir: TMenuItem;
-    Raices_Racionales_Item: TMenuItem;
-    Raices_Enteras_Item: TMenuItem;
-    Raices_Menu: TMenuItem;
-    Cotas: TMenuItem;
     Bairstrow_Item: TMenuItem;
-    Pol_N_Main_Menu: TMenuItem;
-    item_invertir: TMenuItem;
+    Cotas: TMenuItem;
+    Enteras_GroupBox: TGroupBox;
     Item_Div1: TMenuItem;
     Item_Div2: TMenuItem;
+    Item_Editar: TMenuItem;
+    item_invertir: TMenuItem;
+    Item_Limpiar: TMenuItem;
+    MainMenu1: TMainMenu;
+    Racionales_GroupBox: TGroupBox;
+    enteras_Memo: TMemo;
+    Racionales_Memo: TMemo;
+    Raices_Menu: TMenuItem;
+    Salir: TMenuItem;
+    X_Label: TLabel;
+    Pol_N_Memo: TMemo;
+    Pol_N_Main_Menu: TMenuItem;
     procedure Bairstrow_ItemClick(Sender: TObject);
+    procedure CotasClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure Item_Div2Click(Sender: TObject);
@@ -48,8 +49,10 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure Pol_N_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
-    procedure Raices_Enteras_ItemClick(Sender: TObject);
-    procedure Raices_Racionales_ItemClick(Sender: TObject);
+    procedure Racionales_MemoMouseWheelDown(Sender: TObject;
+      Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+    procedure Racionales_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
     procedure SalirClick(Sender: TObject);
     Procedure Check_Enabled();
     procedure X_LabelClick(Sender: TObject);
@@ -59,9 +62,12 @@ type
      //Variables Principales
      Pol_N: cls_Polin; //Polinomio Principal de GradoN
      Pol_N_load: boolean;
-     MIN_MASC: byte;
-     MAX_MASC: byte;
+
      X: extended;  //Sirve para Evalua el Polinomio en un X --->Calcular_Px()
+     MASC_RAC: byte; //Guarda la Mascara para Posibles Raices Racionales
+     const
+          MIN_MASC = 0;
+          MAX_MASC = 11;
   end;
 
 var
@@ -70,7 +76,7 @@ var
 implementation
 {$R *.lfm}
 USES
-    Unit_GUI_Form2,  Unit_GUI_Form3, SysUtils, Dialogs, VectorD;
+    Unit_GUI_Form2,  Unit_GUI_Form3, Unit_GUI_Form4_Cotas, SysUtils, Dialogs, VectorD;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -78,9 +84,8 @@ begin
      Pol_N_load:= false;
      self.Pol_N_Memo.Lines.Text:= '<< Click para editar >>';
      self.Caption:= 'Tp3 - Linkin - Polinomio << Grado N >>';
-     MIN_MASC:= 0;
-     MAX_MASC:= 11;
      X:= 0;
+     MASC_RAC:= 2;
      self.check_enabled();
 end;
 
@@ -88,9 +93,17 @@ procedure TForm1.Bairstrow_ItemClick(Sender: TObject);
 begin
      if Pol_N_load then Begin;
         if Pol_N.Grado()>2 then Begin
-           Pol_N.bairstow(0.0000000001,0,0,1000);
+           Pol_N.bairstow(0.0000000001, 0, 0, 1000);
            showmessage(Pol_N.Raices_To_String());
         end else ShowMessage('Bairstow: Tiene que ingresar un Polinomio de grado mayor a 2');
+     end;
+end;
+
+procedure TForm1.CotasClick(Sender: TObject);
+begin
+     if (Form4=nil) then Begin
+        Form4:= TForm4.Crear(nil,Pol_N);
+        Form4.Show;
      end;
 end;
 
@@ -101,6 +114,8 @@ begin
 end;
 
 procedure TForm1.Item_EditarClick(Sender: TObject);
+Var
+    raices: cls_Vector;
 begin
      //Tambien accede aqui onClick--->Pol_N_Memo
      Form2:= TForm2.Crear(Nil, Pol_N, 0);
@@ -111,6 +126,17 @@ begin
          X:= 0;
          X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
          Self.Pol_N_load:= true;
+
+         raices:= Cls_Vector.Crear();
+         Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,raices);
+         enteras_Memo.Lines.Text:= raices.ToString();
+         raices.Free;
+
+         raices:= Cls_Vector.Crear();
+         Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+         Racionales_Memo.Lines.Text:= raices.ToString(2);
+         raices.Free;
+
          self.check_enabled();
      end;
      Form2.Free;
@@ -118,6 +144,8 @@ begin
 end;
 
 procedure TForm1.Item_Div1Click(Sender: TObject);
+Var
+    Raices: cls_Vector;
 begin
      Self.Visible:= False;
      Form3:= TForm3.Crear(nil,Pol_N,1);
@@ -128,10 +156,22 @@ begin
      X:= 0;
      X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
      Self.Visible:= True;
+     //Posibles Raices Enteras
+     raices:= Cls_Vector.Crear();
+     Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,raices);
+     enteras_Memo.Lines.Text:= raices.ToString();
+     raices.Free;
+     //Posibles Raices Racionales
+     raices:= Cls_Vector.Crear();
+     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+     Racionales_Memo.Lines.Text:= raices.ToString(2);
+     raices.Free;
      self.check_enabled();
 end;
 
 procedure TForm1.Item_Div2Click(Sender: TObject);
+Var
+    Raices: cls_Vector;
 begin
      Self.Visible:= False;
      Form3:= TForm3.Crear(nil,Pol_N,2);
@@ -142,6 +182,16 @@ begin
      X:= 0;
      X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
      Self.Visible:= True;
+     //Posibles Raices Enteras
+     raices:= Cls_Vector.Crear();
+     Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,raices);
+     enteras_Memo.Lines.Text:= raices.ToString();
+     raices.Free;
+     //Posibles Raices Racionales
+     raices:= Cls_Vector.Crear();
+     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+     Racionales_Memo.Lines.Text:= raices.ToString(2);
+     raices.Free;
      self.check_enabled();
 end;
 
@@ -177,26 +227,35 @@ begin
      self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
 end;
 
-procedure TForm1.Raices_Enteras_ItemClick(Sender: TObject);
-Var
-  enteras: cls_Vector;
+procedure TForm1.Racionales_MemoMouseWheelDown(Sender: TObject;
+  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+VAR
+    raices: cls_Vector;
 begin
-     enteras:= Cls_Vector.Crear();
-     //Pol_N.raicesEnteras(Pol_N.Coef,enteras);
-     Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,enteras);
-     showmessage('Posibles Raices Enteras: ' + enteras.ToString());
-     enteras.Destroy;
+     //Posibles Raices Racionales
+     raices:= Cls_Vector.Crear();
+     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+
+     if (MASC_RAC=MIN_MASC+1) then MASC_RAC:= MAX_MASC
+     else dec(MASC_RAC);
+     Racionales_Memo.Lines.Text:= raices.ToString(MASC_RAC);
+     //showmessage(IntToStr(Masc_RAC));
+     raices.Free;
 end;
 
-procedure TForm1.Raices_Racionales_ItemClick(Sender: TObject);
-Var
-  racionales: cls_Vector;
+procedure TForm1.Racionales_MemoMouseWheelUp(Sender: TObject;
+  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+VAR
+    raices: cls_Vector;
 begin
-     racionales:= Cls_Vector.Crear();
-     //Pol_N.raicesracionales(Pol_N.Coef,racionales);
-     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,Racionales);
-     showmessage('Posibles Raices racionales: ' + racionales.ToString(2));
-     racionales.Destroy;
+     //Posibles Raices Racionales
+     raices:= Cls_Vector.Crear();
+     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+
+     if (MASC_RAC=MAX_MASC) then MASC_RAC:= MIN_MASC +1
+     else inc(MASC_RAC);
+     Racionales_Memo.Lines.Text:= raices.ToString(MASC_RAC);
+     raices.Free;
 end;
 
 procedure TForm1.SalirClick(Sender: TObject);
@@ -217,6 +276,8 @@ Begin
          self.Item_Div2.Enabled:= False;
          self.Raices_Menu.Visible:= False;
          self.X_Label.Visible:= False;
+         self.Enteras_GroupBox.Visible:= False;
+         self.Racionales_GroupBox.Visible:= False;
      end else Begin // Pol_N esta cargado
               self.Item_invertir.Visible:= True;
               self.Item_invertir.Enabled:= True;
@@ -228,6 +289,8 @@ Begin
               self.Item_Div2.Enabled:= True;
               self.Raices_Menu.Visible:= True;
               self.X_Label.Visible:= True;
+              self.Enteras_GroupBox.Visible:= True;
+              self.Racionales_GroupBox.Visible:= True;
      end;
 end;
 

@@ -22,27 +22,29 @@ Type
          Property Raices: Cls_Matriz READ Nraices WRITE Nraices;
          Procedure Redimensionar(Grad: integer);
          Function Grado(): integer; //Devuelve el grado del polinomio
-         procedure Copiar(Polin2: cls_Polin); //pol:= polin2
-         function Clon():cls_Polin; //polin2:= pol
+         Function Clon():cls_Polin; //polin2:= pol
          procedure Invertir_Coef(); //a0,...aN ---> aN...a0
          Function Coef_To_String(): AnsiString; //comienza a mostrar de X^0...X^n si Ban_A0= true sino muestra X^n...X^0
          Function Raices_To_String(): String;
-         function evaluar(x:extended):extended;
-         function derivada():cls_Polin; //devuelve la derivada primera del polinomio
-         function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
-         function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
-         function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
-         procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
-         procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
-         procedure Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
-         procedure Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
-         function cotasNewton():cls_Vector;
-         procedure bairstow(error:extended; r:extended; s:extended; max_iter:integer);
+         Function evaluar(x:extended):extended;
+         Function derivada():cls_Polin; //devuelve la derivada primera del polinomio
+         Function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+         Function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
+         Procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
+         Procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
+         Procedure Lagrange(var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
+         Procedure Laguerre(X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
+         Function cotasNewton():cls_Vector;
+         Procedure sturm(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
+         Procedure bairstow(error:extended; r:extended; s:extended; max_iter:integer);
+
   private
+         procedure Copiar(Polin2: cls_Polin); //pol:= polin2
          function determinante():extended;//Bairstow
          procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD, es para Bairstow
          procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
          Function SuperScript(indice: integer): AnsiString;
+         Function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          //hornerCuad es llamado por hornerCuadratico()
          function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function subPolin(posini:integer;cant:integer):Cls_Polin; //no le veo la necesidad de q sea publico
@@ -395,6 +397,7 @@ end;
 procedure cls_Polin.PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
 var ult,i:byte;
 begin
+  self.Invertir_Coef();
   detDivPos(trunc(P.cells[P.N]),C);
   ult:=C.N;
   //En este for se agrego los divisores negativos
@@ -404,6 +407,7 @@ begin
       C.cells[ult]:=C.cells[i]*-1;
     end;
   C.N:=ult;
+  self.Invertir_Coef();
 end;
 procedure cls_Polin.PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
 var
@@ -412,6 +416,7 @@ var
   TP,TI:integer;
   PR:extended;
 begin
+  self.Invertir_Coef();
   TP:=trunc(Pol.cells[0]);//La parte entera del Termino principal
   TI:=trunc(Pol.cells[Pol.N]);//La parte entera del Termino Independiente
   if TI<>0 then
@@ -441,6 +446,7 @@ begin
       PRR.cells[0]:=0;
       PRR.N:=0;
     end;
+    self.Invertir_Coef();
 end;
 //Este metodo se encargar de realizar el cambio de variable 1/t y multiplicarla por t^n y asi obtener un nuevo polinomio en funcion de t
 procedure cls_polin.polNew1(Pol:Cls_Vector; var newPol:Cls_Vector);
@@ -564,13 +570,15 @@ begin
   else
      cotaInfNegLagrangue:=0;
 end;
-procedure cls_Polin.Lagrangue(Pol:Cls_Vector;var cota:Cls_Vector);
+procedure cls_Polin.Lagrange(var cota:Cls_Vector);
 begin
-  cota.cells[0]:=cotaSupPosLagrangue(Pol);
-  cota.cells[1]:=cotaInfPosLagrangue(Pol);
-  cota.cells[2]:=cotaInfNegLagrangue(Pol);
-  cota.cells[3]:=cotaSupNegLagrangue(Pol);
+  self.Invertir_Coef();
+  cota.cells[0]:=cotaSupPosLagrangue(self.Coef);
+  cota.cells[1]:=cotaInfPosLagrangue(self.Coef);
+  cota.cells[2]:=cotaInfNegLagrangue(self.Coef);
+  cota.cells[3]:=cotaSupNegLagrangue(self.Coef);
   cota.N:=3;
+  self.Invertir_Coef();
 end;
 
 function cls_Polin.cotaSupPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
@@ -651,13 +659,15 @@ begin
   else
      CotaInfNegLaguerre:=X;
 end;
-procedure cls_Polin.Laguerre(Pol:Cls_Vector;X:extended;var cota:Cls_Vector);
+procedure cls_Polin.Laguerre(X:extended;var cota:Cls_Vector);
 begin
-  cota.cells[0]:=cotaSupPosLaguerre(Pol,X);
-  cota.cells[1]:=cotaInfPosLaguerre(Pol,X);
-  cota.cells[2]:=cotaSupNegLaguerre(Pol,X);
-  cota.cells[3]:=cotaInfNegLaguerre(Pol,X);
+  self.Invertir_Coef();
+  cota.cells[0]:=cotaSupPosLaguerre(self.Coef,X);
+  cota.cells[1]:=cotaInfPosLaguerre(self.Coef,X);
+  cota.cells[2]:=cotaSupNegLaguerre(self.Coef,X);
+  cota.cells[3]:=cotaInfNegLaguerre(self.Coef,X);
   cota.N:=3;
+  self.Invertir_Coef();
 end;  
 function cls_Polin.cotaSupPosNewton():extended;
 var
@@ -799,7 +809,7 @@ begin
         end;
 end;
 
-procedure Cls_Polin.bairstow(error:extended; r:extended; s:extended; max_iter:integer);
+procedure Cls_Polin.Bairstow(error:extended; r:extended; s:extended; max_iter:integer);
 
 var
     a:cls_polin;
@@ -890,6 +900,41 @@ begin
     a.Destroy;
     b.Destroy;
     c.Destroy;
+end;
+
+procedure cls_Polin.sturm(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
+var
+  Pol1,Pol2:Cls_Vector;
+  m:Cls_Matriz;
+  i,j,c:byte;
+begin
+  Pol1:=Cls_Vector.crear(100);
+  Pol2:=Cls_Vector.crear(100);
+  m:=Cls_Matriz.crear(Pol.N+1,Inter.N);//Se coloca Pol.N+1 porque queremos una fila mas donde se colocara la cantidad de cambio de variables
+  for i:=0 to Pol.N do//Este For controla las filas de la tabla(hace referencia a los polinomios que obtendre y evaluados)
+    begin
+      for j:=0 to Inter.N do//Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados equivalentes a los intervalos)
+        m.cells[i,j]:=EvaluarPolinomio(Pol1,Inter.cells[j]);
+      //dividePolinomio(Pol1,Pol2,Pol3);//Obtenemos un nuevo polinomio que correspode a el resto de dividir Pol1 / Pol2
+      Pol1.Copiar(Pol2);
+      //Pol2.Copiar(Pol3);
+    end;
+  for j:=0 to m.NumC do
+    begin
+      c:=0;
+      for i:=0 to m.NumF do
+        begin
+          if m.cells[i,j]*m.cells[i+1,j]<0 then
+            c:=c+1;
+        end;
+      m.cells[i,j]:=c;
+    end;
+  for j:=0 to m.NumC-1 do
+    if abs(m.cells[m.NumF,j]-m.cells[m.NumF,j])=1 then
+      begin
+        InterRaiz.cells[j]:=Inter.cells[j];
+        InterRaiz.cells[j+1]:=Inter.cells[j+1];
+      end;
 end;
 
 Function cls_Polin.Raices_To_String(): String;

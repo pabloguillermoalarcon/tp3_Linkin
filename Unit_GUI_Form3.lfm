@@ -1,13 +1,13 @@
 object Form3: TForm3
   Left = 356
-  Height = 533
+  Height = 525
   Top = 112
   Width = 769
   HorzScrollBar.Page = 1
   VertScrollBar.Page = 1
   BorderStyle = bsSingle
   Caption = 'Division de Polinomios'
-  ClientHeight = 533
+  ClientHeight = 525
   ClientWidth = 769
   KeyPreview = True
   OnKeyPress = FormKeyPress
