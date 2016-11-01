@@ -287,16 +287,15 @@ end;
 function Cls_Polin.ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
 var
     beta,alfa:extended;
+    divAux:cls_Polin;
 begin
     alfa:=divisor.Coef.cells[1];
     beta:=divisor.Coef.cells[0];
-
-    divisor.Coef.xEscalar(1/alfa);
-    if horner(divisor,cociente,resto) then
+    divAux:=divisor.clon();
+    divAux.Coef.xEscalar(1/alfa);
+    if horner(divAux,cociente,resto) then
     begin
-       	divisor.Coef.xEscalar(alfa);	//vuelve divisor a sus coef original
-        cociente.Coef.xEscalar(alfa);
-        resto.Coef.xEscalar(alfa);
+        cociente.Coef.xEscalar(1/alfa);
     	result:= true;
 	end
 	else
@@ -336,16 +335,14 @@ end;
 function Cls_Polin.hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
 var
     alfa:extended;
+    divAux:cls_polin;
 begin
     alfa:=divisor.Coef.cells[2];
-	divisor.Coef.xEscalar(1/alfa);
-    if self.hornerCuad(divisor,cociente,resto) then
+    divAux:=divisor.clon();
+	divAux.Coef.xEscalar(1/alfa);
+    if self.hornerCuad(divAux,cociente,resto) then
     begin
-       //hay q buscar la forma de duplicar el objeto
-       //para no modificar el divisor original
-        divisor.Coef.xEscalar(alfa); //vuelve divisor a sus coef original
-    	cociente.Coef.xEscalar(alfa);
-        resto.Coef.xEscalar(alfa);
+    	cociente.Coef.xEscalar(1/alfa);
         result:=true;
     end
     else
@@ -738,15 +735,31 @@ begin
     else
         result:=0;
 end;
+
 function cls_Polin.cotasNewton():cls_Vector;
 var
     vector:cls_Vector;
+    cotaSupPos,cotaInfPos,cotaSupNeg,cotaInfNeg:extended;
 begin
 	vector:=cls_Vector.crear(4);
-    vector.cells[0]:=self.cotaSupPosNewton();
-    vector.cells[1]:=self.cotaInfPosNewton();
-    vector.cells[2]:=self.cotaSupNegNewton();
-    vector.cells[3]:=self.cotaInfNegNewton();
+    cotaSupPos:=self.cotaSupPosNewton();
+    cotaInfPos:=self.cotaInfPosNewton();
+    cotaSupNeg:=self.cotaSupNegNewton();
+    cotaInfNeg:=self.cotaInfNegNewton();
+    if (cotaSupPos<cotaInfPos) then //cotas cruzadas
+    begin
+    	cotaSupPos:=0;
+        cotaInfPos:=0;
+	end;
+    if (cotaSupNeg<cotaInfNeg) then //cotas cruzadas
+    begin
+    	cotaSupPos:=0;
+        cotaInfPos:=0;
+	end;
+    vector.cells[3]:=cotaSupPos;
+    vector.cells[2]:=cotaInfPos;
+    vector.cells[1]:=cotaSupNeg;
+    vector.cells[0]:=cotaInfNeg;
     result:=vector;
 end;
 
