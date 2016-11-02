@@ -93,7 +93,7 @@ procedure TForm1.Bairstrow_ItemClick(Sender: TObject);
 begin
      if Pol_N_load then Begin;
         if Pol_N.Grado()>2 then Begin
-           Pol_N.bairstow(0.0000000001, 0, 0, 1000);
+           Pol_N.bairstow(0.0000000001, 0, 0);
            showmessage(Pol_N.Raices_To_String());
         end else ShowMessage('Bairstow: Tiene que ingresar un Polinomio de grado mayor a 2');
      end;

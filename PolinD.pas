@@ -15,6 +15,7 @@ Type
          Coeficientes: cls_Vector; // vector de Coeficientes [Ao,...,An]
          Nraices: cls_Matriz; //Matriz de 2 x N para las raices, Parte Real y Parte Im
   Public
+
          band_A0: boolean; //indica si se visualiza [a0,...,aN]=TRUE; [aN,...,a0]=FALSE
          Masc: integer; //Mascara: guarda la cantidad de decimales para mostrar cuando se convierte con Coef_To_String()
          constructor Crear(Grad: integer = 5; Mascara: integer=0; Visualizar_A0:boolean = false);
@@ -36,13 +37,15 @@ Type
          Procedure Laguerre(X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          Function cotasNewton():cls_Vector;
          Procedure sturm(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
-         Procedure bairstow(error:extended; r:extended; s:extended; max_iter:integer);
-
+         Procedure bairstow(error:extended; r:extended; s:extended);
+   const
+         max_iter=200;
   private
          procedure Copiar(Polin2: cls_Polin); //pol:= polin2
          function determinante():extended;//Bairstow
+
          procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD, es para Bairstow
-         procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
+         procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;var i2:extended);
          Function SuperScript(indice: integer): AnsiString;
          Function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          //hornerCuad es llamado por hornerCuadratico()
@@ -777,10 +780,10 @@ begin
     c.Coef.cells[m]:=b.Coef.cells[m];
     num:=r*b.Coef.cells[m];
     b.Coef.cells[m-1]:=aux.coef.cells[m-1]+num;
-    num2:=(s)*c.Coef.cells[m];
+    num2:=r*c.Coef.cells[m];
     c.Coef.cells[m-1]:=b.coef.cells[m-1]+num2;
 
-    for i:=m-2 downto 0 do
+    for i:=m-2 downto 1 do
         begin
             num:=aux.Coef.cells[i];
             num2:=r*b.Coef.cells[i+1];
@@ -791,16 +794,18 @@ begin
             num3:=s*c.Coef.cells[i+2];
             c.Coef.cells[i]:=num+num2+num3;
         end;
+    b.Coef.cells[0]:=aux.Coef.cells[0]+s*b.Coef.cells[0+2];
+    c.Coef.cells[0]:=b.Coef.cells[0]+s*c.Coef.cells[0+2];
     aux.Destroy;
 end;
 
 function cls_polin.determinante():extended;
 
 begin
-    result:=self.Coef.cells[2]*self.Coef.cells[2]-self.Coef.cells[3]*self.Coef.cells[1];
+    result:=self.Coef.cells[2]*self.Coef.cells[2]-self.Coef.cells[1]*self.Coef.cells[3];
 end;
 
-procedure cls_polin.cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;i2:extended);
+procedure cls_polin.cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;var i2:extended);
 
 var
     disc:extended;
@@ -822,7 +827,7 @@ begin
         end;
 end;
 
-procedure Cls_Polin.Bairstow(error:extended; r:extended; s:extended; max_iter:integer);
+procedure Cls_Polin.bairstow(error:extended; r:extended; s:extended);
 
 var
     a:cls_polin;
@@ -841,10 +846,11 @@ var
     i:integer;
     bu:boolean;
     num,num2:extended;
+    n:integer;
 begin
     a:=cls_polin.Crear(self.Grado(),0,false);
-    b:=cls_polin.Crear(self.Grado()+1,0,false);
-    c:=cls_polin.Crear(self.Grado()+1,0,false);
+    b:=cls_polin.Crear(self.Grado(),0,false);
+    c:=cls_polin.Crear(self.Grado(),0,false);
     a:=self.Clon();
     err_a1:=1;
     err_a2:=2;
@@ -866,6 +872,7 @@ begin
                             s:=s+ds;
                             if r<>0 then
                                 err_a1:=abs(dr/r)*100;
+
                             if s<>0 then
                                 err_a2:=abs(ds/s)*100;
                         end
@@ -876,7 +883,7 @@ begin
                             iter:=0;
                         end;
                 end;
-            until (((err_a1<=error)and(err_a2<=error))or(iter<max_iter));
+            until (((err_a1<=error)and(err_a2<=error))or(iter>max_iter));
             r1:=0;
             i1:=0;
             r2:=0;
@@ -886,10 +893,13 @@ begin
             self.Nraices.cells[1,a.Grado()]:=i1;
             self.Nraices.cells[0,a.Grado()-1]:=r2;
             self.Nraices.cells[1,a.Grado()-1]:=i2;
-
-            for i:=0 to a.Grado()-2 do;
-                a.Coef.cells[i]:=b.Coef.cells[i+2];
-            a.Coef.Redimensionar(Grado()-1);
+            a.horner_doble(b,c,r,s);
+            n:=a.Grado()-2;
+            a.Redimensionar(n);
+            for i:=0 to n do
+                begin
+                    a.Coef.cells[i]:=b.Coef.cells[i+2];
+                end;
         end;
 
     if iter<max_iter then
