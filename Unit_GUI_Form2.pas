@@ -14,10 +14,7 @@ USES
     cthreads, cmem
     {$ENDIF}{$ENDIF}
     Classes, Forms, Controls, StdCtrls, Grids, ComCtrls,  PolinD, Types;
-
 type
-
-  { TForm2 }
 TForm2 = class(TForm)
     Aceptar: TButton;
     Cancel_Buttom: TButton;

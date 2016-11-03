@@ -12,22 +12,31 @@ VAR
     V, V2: cls_vector;
     pol_n, divi,coc,rest, B,C: cls_polin;
     i: integer;
+    k:extended;
 BEGIN
 
 {************************* <<< Leeme.txt >>> ********************************
-
 Clases:
 1) VectorD.pas
 2) MatrizD.pas
 3) PolinD.pas
 4) unit_GUI.pas(Interfaz Grafica de Usuario)
 }
-   pol_N:= cls_Polin.Crear(4);
-   pol_N.Coef.cells[4]:= 4;
-   pol_N.Coef.cells[3]:= 0;
-   pol_N.Coef.cells[2]:= -5;
-   pol_N.Coef.cells[1]:= 0;
-   pol_N.Coef.cells[0]:= 1;
+   pol_N:= cls_Polin.Crear(3);
+   //pol_N.Coef.cells[4]:= 4;
+   pol_N.Coef.cells[3]:= 1;
+   pol_N.Coef.cells[2]:= -4;
+   pol_N.Coef.cells[1]:= -2;
+   pol_N.Coef.cells[0]:= -12;
+   pol_n.Coef.mostrar('Coef: ');
+
+   //V:= cls_Vector.crear();
+   V:= pol_n.PosiblesRaicesEnteras2();
+   V.mostrar('V-->Posibles Raices enteras2 ('+IntToStr(V.N)+')');
+
+   Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,V);
+   V.mostrar('V-->Posibles Raices enteras ('+IntToStr(V.N)+')');
+
    {
    Pol_N.band_A0:= False;
    Pol_N.Coef.mostrar('<<Dividendo>>');
@@ -56,9 +65,8 @@ Clases:
    WriteLN(rest.Coef_To_String());
    writeln('Grado: ',rest.Grado());
    end else writeln('No HornerCuad...');
-    }
-   V:= cls_Vector.crear(4);
+  }{
   V:= Pol_N.cotasNewton();
-   V.mostrar('V');
-
+  V.mostrar('V');}
+  readln;
 END.

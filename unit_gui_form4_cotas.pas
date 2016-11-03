@@ -3,6 +3,9 @@ unit Unit_GUI_Form4_Cotas;
 
 interface
 uses
+    {$IFDEF UNIX}{$IFDEF UseCThreads}
+    cthreads, cmem
+    {$ENDIF}{$ENDIF}
   Classes, SysUtils, Forms, Controls, StdCtrls, PolinD;
 
 type
@@ -18,15 +21,16 @@ type
        Newton_Memo: TMemo;
        Sturm_GroupBox: TGroupBox;
        Sturm_Memo: TMemo;
+       constructor crear(Comp: Tcomponent; Pol: cls_Polin);
        procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
-  public
-       const
+       Procedure actualiza();
+       Procedure Cerrar();
+  Public
+       Polin: cls_Polin;
+  const
        MIN_MASC = 0;
        MAX_MASC = 11;
-       constructor crear(Comp: Tcomponent; Polin: cls_Polin);
-
   end;
-
 var
   Form4: TForm4;
 
@@ -35,25 +39,35 @@ implementation
 USES
     VectorD;
 
+Procedure TForm4.Cerrar();
+Begin
+     self.Close;
+end;
+
 procedure TForm4.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
      CloseAction:= caFree;
      Form4:= nil;
 end;
 
-constructor TForm4.Crear(Comp: Tcomponent; Polin: cls_Polin);
+constructor TForm4.Crear(Comp: Tcomponent; Pol: cls_Polin);
+Begin
+     inherited create(comp);
+     Polin:= Pol;
+     self.actualiza();
+end;
+Procedure TForm4.actualiza();
 Var
    vector: cls_Vector;
-   pol_N:cls_Polin;
 Begin
      Vector:= cls_Vector.crear(4);
-     inherited create(comp);
      polin.Lagrange(vector);
-     Lagrange_Memo.Lines.Text:= Vector.ToString(2);
+     Lagrange_Memo.Lines.Text:= Vector.ToString(4);
      polin.Laguerre(0,vector);
-     Laguerre_Memo.Lines.Text:= Vector.ToString(2);
+     Laguerre_Memo.Lines.Text:= Vector.ToString(4);
+     Vector.Free;
      vector:= polin.cotasNewton();
-     Newton_Memo.Lines.Text:= Vector.ToString(2);
+     Newton_Memo.Lines.Text:= Vector.ToString(4);
      //polin.sturm(polin.Coef,vector,vector);
 end;
 

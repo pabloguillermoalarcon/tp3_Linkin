@@ -1,10 +1,9 @@
 unit Unit_GUI;
 {$mode objfpc}{$H+}
+
 interface
 (*Las Varias principales son tres polinomios:
-Pol_N_Main_Menu: Polinomio Normal: 0<= Grado N <=10
-Pol_Div1: Polinomio Especial, Monico Divisor Grado 1: X-a,
-Pol_Div2: Polinomio Especial Monico Divisor Grado 2: X^2-rX-s
+Pol_N: Polinomio Normal: 0<= Grado N <=10
 
 internamente el vector de coeficientes se carga de la forma [A0...AN] siempre
 pero se visualiza de forma predeterminada [An...A0]
@@ -17,7 +16,6 @@ uses
     Classes, Forms, StdCtrls, Menus, PolinD, Controls, Types;
 
 type
-  { TForm1 }
   TForm1 = class(TForm)
     Bairstrow_Item: TMenuItem;
     Cotas: TMenuItem;
@@ -36,9 +34,10 @@ type
     X_Label: TLabel;
     Pol_N_Memo: TMemo;
     Pol_N_Main_Menu: TMenuItem;
+    procedure FormCreate(Sender: TObject);
+    procedure Actualiza();
     procedure Bairstrow_ItemClick(Sender: TObject);
     procedure CotasClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure Item_Div2Click(Sender: TObject);
     procedure Item_EditarClick(Sender: TObject);
@@ -54,20 +53,22 @@ type
     procedure Racionales_MemoMouseWheelUp(Sender: TObject; Shift: TShiftState;
       MousePos: TPoint; var Handled: Boolean);
     procedure SalirClick(Sender: TObject);
-    Procedure Check_Enabled();
     procedure X_LabelClick(Sender: TObject);
   private
-    { private declarations }
+         Procedure actualiza_Pol_N();
+         Function Obtiene(Var X:Extended): Boolean; //Carga un X para Evaluar Polinomio
+         Procedure actualiza_evalua(X:extended = 0);
+         Procedure actualiza_Posibles_Raices_Enteras();//Actualiza en Form
+         Procedure actualiza_Posibles_Raices_Racionales();//Actualiza en Form
+         Procedure Check_Enabled();
   public
-     //Variables Principales
-     Pol_N: cls_Polin; //Polinomio Principal de GradoN
-     Pol_N_load: boolean;
-
-     X: extended;  //Sirve para Evalua el Polinomio en un X --->Calcular_Px()
-     MASC_RAC: byte; //Guarda la Mascara para Posibles Raices Racionales
-     const
-          MIN_MASC = 0;
-          MAX_MASC = 11;
+        //Variables Principales
+        Pol_N: cls_Polin; //Polinomio Principal de GradoN
+        Pol_N_load: boolean;
+        MASC_RAC: byte; //Guarda la Mascara para Posibles Raices Racionales
+  const
+       MIN_MASC = 0;
+       MAX_MASC = 11;
   end;
 
 var
@@ -80,13 +81,99 @@ USES
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-     Pol_N:= cls_Polin.Crear(3);
      Pol_N_load:= false;
-     self.Pol_N_Memo.Lines.Text:= '<< Click para editar >>';
-     self.Caption:= 'Tp3 - Linkin - Polinomio << Grado N >>';
-     X:= 0;
-     MASC_RAC:= 2;
+     self.actualiza();
+end;
+
+Procedure TForm1.actualiza();
+Begin
+     if (not Pol_N_Load)then Begin
+        Pol_N:= cls_Polin.Crear(3);
+        self.Pol_N_Memo.Lines.Text:= '<< Click para editar >>';
+        self.Caption:= 'Tp3 - Linkin - Polinomio << Grado N >>';
+        MASC_RAC:= 2;
+        if (Form4<>nil) then
+            Form4.Close;
+     end else Begin
+         actualiza_Pol_N();
+         actualiza_evalua();
+         actualiza_Posibles_Raices_Enteras();
+         MASC_RAC:= 2;
+         actualiza_Posibles_Raices_Racionales();
+         if (Form4<>nil) then
+             Form4.actualiza();
+     end;
      self.check_enabled();
+end;
+
+Procedure TForm1.actualiza_Pol_N();
+Begin
+     self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
+     Self.Caption:='Tp3 - Linkin - Polinomio << Grado '+IntToStr(Pol_N.Grado())+' >>';
+end;
+
+Function TForm1.Obtiene(Var X:Extended): Boolean;
+Var
+   cad: string;
+   pos: integer;
+Begin
+     cad:= InputBox('Cambiar Valor P(X)','Ingrese X: ', FloatToStr(X));
+     if (cad <> '') then Begin
+        Val(cad,X,pos);
+        if (pos=0) then RESULT:= true
+        else RESULT:= False;
+     end;
+end;
+
+Procedure TForm1.actualiza_evalua(X: extended = 0);
+Begin
+     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
+end;
+
+procedure TForm1.X_LabelClick(Sender: TObject);
+var
+  X: extended;
+begin
+     if obtiene(X) then
+        actualiza_evalua(X);
+end;
+
+Procedure TForm1.actualiza_Posibles_Raices_Enteras();
+Var
+   raices: cls_Vector;
+Begin
+     raices:= Pol_N.PosiblesRaicesEnteras2();
+     enteras_Memo.Lines.Text:= raices.ToString();
+     raices.Free;
+end;
+
+Procedure TForm1.actualiza_Posibles_Raices_Racionales();
+Var
+   raices: cls_Vector;
+Begin
+     raices:= Cls_Vector.Crear();
+     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+     Racionales_Memo.Lines.Text:= raices.ToString(2);
+     raices.Free;
+end;
+
+procedure TForm1.Item_EditarClick(Sender: TObject);
+begin
+     //Tambien accede aqui onClick--->Pol_N_Memo
+     Form2:= TForm2.Crear(nil, Pol_N, 0);
+     Form2.ShowModal;
+     if (Form2.ModalResult = mrOk) then Begin
+        Self.Pol_N_load:= true;
+        self.actualiza();
+     end;
+     Form2.Free;
+     Form2:= nil; //FreeAndNil(Form2);
+end;
+
+procedure TForm1.FormKeyPress(Sender: TObject; var Key: char);
+begin
+  if (key = #27) then
+     Close;
 end;
 
 procedure TForm1.Bairstrow_ItemClick(Sender: TObject);
@@ -107,42 +194,6 @@ begin
      end;
 end;
 
-procedure TForm1.FormKeyPress(Sender: TObject; var Key: char);
-begin
-  if (key = #27) then
-     Close;
-end;
-
-procedure TForm1.Item_EditarClick(Sender: TObject);
-Var
-    raices: cls_Vector;
-begin
-     //Tambien accede aqui onClick--->Pol_N_Memo
-     Form2:= TForm2.Crear(Nil, Pol_N, 0);
-     Form2.ShowModal;
-     if (Form2.ModalResult = mrOk) then Begin
-         self.Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
-         Self.Caption:='Tp3 - Linkin - Polinomio << Grado '+IntToStr(Pol_N.Grado())+' >>';
-         X:= 0;
-         X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
-         Self.Pol_N_load:= true;
-
-         raices:= Cls_Vector.Crear();
-         Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,raices);
-         enteras_Memo.Lines.Text:= raices.ToString();
-         raices.Free;
-
-         raices:= Cls_Vector.Crear();
-         Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
-         Racionales_Memo.Lines.Text:= raices.ToString(2);
-         raices.Free;
-
-         self.check_enabled();
-     end;
-     Form2.Free;
-     Form2:= nil; //FreeAndNil(Form2);
-end;
-
 procedure TForm1.Item_Div1Click(Sender: TObject);
 Var
     Raices: cls_Vector;
@@ -152,21 +203,7 @@ begin
      Form3.ShowModal;
      Form3.Free;
      Form3:= nil;
-     Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
-     X:= 0;
-     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
-     Self.Visible:= True;
-     //Posibles Raices Enteras
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,raices);
-     enteras_Memo.Lines.Text:= raices.ToString();
-     raices.Free;
-     //Posibles Raices Racionales
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
-     Racionales_Memo.Lines.Text:= raices.ToString(2);
-     raices.Free;
-     self.check_enabled();
+     Actualiza();
 end;
 
 procedure TForm1.Item_Div2Click(Sender: TObject);
@@ -178,21 +215,7 @@ begin
      Form3.ShowModal;
      Form3.Free;
      Form3:= nil;
-     Pol_N_Memo.Lines.Text:= Pol_N.Coef_To_String();
-     X:= 0;
-     X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
-     Self.Visible:= True;
-     //Posibles Raices Enteras
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,raices);
-     enteras_Memo.Lines.Text:= raices.ToString();
-     raices.Free;
-     //Posibles Raices Racionales
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
-     Racionales_Memo.Lines.Text:= raices.ToString(2);
-     raices.Free;
-     self.check_enabled();
+     Actualiza();
 end;
 
 procedure TForm1.item_invertirClick(Sender: TObject);
@@ -205,8 +228,8 @@ end;
 
 procedure TForm1.Item_LimpiarClick(Sender: TObject);
 begin
-     Pol_N.Free;
-     FormCreate(Self);
+     Pol_N_load:= False;
+     self.actualiza();
 end;
 
 procedure TForm1.Pol_N_MemoMouseWheelDown(Sender: TObject; Shift: TShiftState;
@@ -291,19 +314,6 @@ Begin
               self.X_Label.Visible:= True;
               self.Enteras_GroupBox.Visible:= True;
               self.Racionales_GroupBox.Visible:= True;
-     end;
-end;
-
-procedure TForm1.X_LabelClick(Sender: TObject);
-var
-  cad: string;
-  pos: integer;
-begin
-     cad:= InputBox('Cambiar Valor P(X)','Ingrese X: ', FloatToStr(X));
-     if (cad <> '') then Begin
-        Val(cad,X,pos);
-        if (pos=0) then
-           X_Label.Caption:= 'P('+FloatToStr(X)+') = '+FloatToStr(Pol_N.evaluar(X));
      end;
 end;
 

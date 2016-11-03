@@ -1,12 +1,12 @@
 object Form1: TForm1
-  Left = 291
-  Height = 484
-  Top = 133
-  Width = 659
+  Left = 502
+  Height = 488
+  Top = 137
+  Width = 503
   BorderStyle = bsSingle
   Caption = 'Tp3 - Linkin'
-  ClientHeight = 449
-  ClientWidth = 659
+  ClientHeight = 453
+  ClientWidth = 503
   KeyPreview = True
   Menu = MainMenu1
   OnCreate = FormCreate
@@ -16,10 +16,10 @@ object Form1: TForm1
   LCLVersion = '1.6.0.4'
   object Pol_N_Memo: TMemo
     Left = 8
-    Height = 154
+    Height = 112
     Hint = '<< Click para editar >>'
     Top = 0
-    Width = 648
+    Width = 488
     BorderSpacing.CellAlignHorizontal = ccaCenter
     BorderSpacing.CellAlignVertical = ccaCenter
     Font.Height = -24
@@ -40,7 +40,7 @@ object Form1: TForm1
     Left = 8
     Height = 28
     Hint = '<< Click para editar >>'
-    Top = 160
+    Top = 128
     Width = 61
     Caption = 'Pol(X)'
     Font.Height = -21
@@ -52,19 +52,18 @@ object Form1: TForm1
   end
   object Enteras_GroupBox: TGroupBox
     Left = 8
-    Height = 104
-    Top = 200
-    Width = 648
+    Height = 132
+    Top = 168
+    Width = 488
     Caption = 'Posibles Raices Enteras'
-    ClientHeight = 69
-    ClientWidth = 644
+    ClientHeight = 104
+    ClientWidth = 484
     TabOrder = 1
     object enteras_Memo: TMemo
-      Left = 8
-      Height = 64
-      Hint = '<< Click para editar >>'
+      Left = 0
+      Height = 92
       Top = 0
-      Width = 624
+      Width = 483
       BorderSpacing.CellAlignHorizontal = ccaCenter
       BorderSpacing.CellAlignVertical = ccaCenter
       BorderStyle = bsNone
@@ -74,7 +73,6 @@ object Form1: TForm1
       Lines.Strings = (
         '<< enteras>>'
       )
-      OnMouseWheelDown = Pol_N_MemoMouseWheelDown
       ParentFont = False
       ReadOnly = True
       ScrollBars = ssAutoVertical
@@ -83,19 +81,18 @@ object Form1: TForm1
   end
   object Racionales_GroupBox: TGroupBox
     Left = 8
-    Height = 112
-    Top = 320
-    Width = 648
+    Height = 132
+    Top = 312
+    Width = 488
     Caption = 'Posibles Raices Racionales'
-    ClientHeight = 77
-    ClientWidth = 644
+    ClientHeight = 104
+    ClientWidth = 484
     TabOrder = 2
     object Racionales_Memo: TMemo
-      Left = 8
-      Height = 72
-      Hint = '<< Click para editar >>'
+      Left = 0
+      Height = 92
       Top = 0
-      Width = 624
+      Width = 483
       BorderSpacing.CellAlignHorizontal = ccaCenter
       BorderSpacing.CellAlignVertical = ccaCenter
       BorderStyle = bsNone
@@ -105,8 +102,6 @@ object Form1: TForm1
       Lines.Strings = (
         '<< Racionales >>'
       )
-      OnMouseWheelDown = Racionales_MemoMouseWheelDown
-      OnMouseWheelUp = Racionales_MemoMouseWheelUp
       ParentFont = False
       ReadOnly = True
       ScrollBars = ssAutoVertical

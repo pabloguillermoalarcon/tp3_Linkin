@@ -31,8 +31,9 @@ Type
          Function derivada():cls_Polin; //devuelve la derivada primera del polinomio
          Function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          Function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
-         Procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
          Procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
+         Function PosiblesRaicesEnteras2(): cls_Vector;
+         Procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
          Procedure Lagrange(var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          Procedure Laguerre(X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          Function cotasNewton():cls_Vector;
@@ -41,16 +42,20 @@ Type
    const
          max_iter=200;
   private
-         procedure Copiar(Polin2: cls_Polin); //pol:= polin2
-         function determinante():extended;//Bairstow
-
-         procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD, es para Bairstow
-         procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;var i2:extended);
+         Procedure Copiar(Polin2: cls_Polin); //pol:= polin2
+         Function determinante():extended;//Bairstow
+         Procedure horner_doble(var b:Cls_polin;var c:Cls_polin; r:extended; s:extended);// Despues de hacerlo vi el de arriba xD, es para Bairstow
+         Procedure cuadratica(r:extended;s:extended;var r1:extended; var i1:extended;var r2:extended;var i2:extended);
          Function SuperScript(indice: integer): AnsiString;
          Function horner(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          //hornerCuad es llamado por hornerCuadratico()
          function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function subPolin(posini:integer;cant:integer):Cls_Polin; //no le veo la necesidad de q sea publico
+         //Posibles Raices Enteras
+         Function detDivPos2(num:integer): cls_Vector;
+         Procedure detDivPos(num:integer;var Vec:Cls_Vector);
+         Function EvaluarPolinomio(P: Cls_Vector; X: extended): extended;
+         Procedure ruffiniEvaluador(A: Cls_Vector;var B: Cls_Vector; X: extended);   // A es el vector con los coeficientes del polinomio ingresado
          //metodos de cambio de variable...
          procedure polNew1(Pol:Cls_Vector; var newPol:Cls_Vector);
          procedure polNew2(Pol:Cls_Vector;var newPol:Cls_Vector);
@@ -228,7 +233,7 @@ begin
     result:=polinAux;
 end;
 
-function Cls_Polin.evaluar(x:extended):extended;
+function Cls_Polin.evaluar(X:extended):extended;
 Var
    divi,coc,res: cls_Polin;
 begin
@@ -352,7 +357,7 @@ begin
     	result:=false;
 end;
 
-Procedure ruffiniEvaluador(A: Cls_Vector;var B: Cls_Vector; X: extended);   // A es el vector con los coeficientes del polinomio ingresado
+Procedure cls_Polin.ruffiniEvaluador(A: Cls_Vector;var B: Cls_Vector; X: extended);   // A es el vector con los coeficientes del polinomio ingresado
 var                                                                       // en el vector B guardamos la solucion del  metodo de Ruffini lo que seria C(x)y resto
   k:byte;
 begin
@@ -361,8 +366,9 @@ begin
       B.cells[k]:= A.cells[k]+(B.cells[k-1]*X);
   B.N:=k;
 end;
+
 //Funcion que Evalua un polinomio
-Function EvaluarPolinomio(P: Cls_Vector; X: extended): extended;
+Function cls_Polin.EvaluarPolinomio(P: Cls_Vector; X: extended): extended;
 var B:Cls_Vector;
 begin
   B:=Cls_Vector.crear(P.N);
@@ -370,7 +376,8 @@ begin
   EvaluarPolinomio:= B.cells[B.N];
   B.destroy();
 end;
-PROCEDURE detDivPos(num:integer;var Vec:Cls_Vector);
+
+PROCEDURE cls_Polin.detDivPos(num:integer;var Vec:Cls_Vector);
 var
   i,j:integer;
 begin
@@ -394,6 +401,51 @@ begin
     Vec.cells[j]:=1;
   Vec.N:=j;
 end;
+
+Function cls_Polin.detDivPos2(num:integer): cls_Vector;
+var
+  i,j:integer;
+  Vec: cls_Vector;
+begin
+  num:= abs(num);
+  Vec:= cls_Vector.crear(1);
+  j:=0;
+  if (num<>1) and (num<>-1)then Begin
+    if num<>0 then begin
+        Vec.cells[j]:=1;
+        for i:=2 to (num div 2) do
+           if(num mod i = 0) then begin
+                  j:=j+1;
+                  Vec.Redimensionar(j+1);
+                  Vec.cells[j]:=i;
+           end;
+        j:=j+1;
+        Vec.Redimensionar(j+1);//agregado()
+        Vec.cells[j]:=num;
+    end else Begin
+        Vec.Redimensionar(j+1);
+        Vec.cells[j]:=0;
+  end;
+  end else
+    Vec.cells[j]:=1;
+    RESULT:= Vec;
+end;
+
+Function cls_Polin.PosiblesRaicesEnteras2(): cls_Vector;
+var
+    ult,i:byte;
+    C: cls_Vector;
+begin
+  C:= detDivPos2(trunc(self.coef.cells[0]));
+  ult:=C.N;
+  //En este for se agrego los divisores negativos
+  for i:= 0 to ult do begin
+      C.Redimensionar(C.N+2);
+      C.cells[C.N]:=C.cells[i]*-1;
+  end;
+  RESULT:= C;
+end;
+
 procedure cls_Polin.PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
 var ult,i:byte;
 begin
@@ -744,7 +796,7 @@ var
     vector:cls_Vector;
     cotaSupPos,cotaInfPos,cotaSupNeg,cotaInfNeg:extended;
 begin
-	vector:=cls_Vector.crear(4);
+    vector:=cls_Vector.crear(4);
     cotaSupPos:=self.cotaSupPosNewton();
     cotaInfPos:=self.cotaInfPosNewton();
     cotaSupNeg:=self.cotaSupNegNewton();

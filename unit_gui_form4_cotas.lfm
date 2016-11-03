@@ -1,27 +1,27 @@
 object Form4: TForm4
-  Left = 358
-  Height = 484
-  Top = 147
-  Width = 444
+  Left = 455
+  Height = 488
+  Top = 137
+  Width = 349
   Caption = 'Cotas de Raices'
-  ClientHeight = 484
-  ClientWidth = 444
+  ClientHeight = 488
+  ClientWidth = 349
   OnClose = FormClose
   LCLVersion = '1.6.0.4'
   object Lagrange_GroupBox: TGroupBox
-    Left = 0
+    Left = 8
     Height = 112
     Top = 8
-    Width = 440
+    Width = 333
     Caption = 'Lagrange'
     ClientHeight = 84
-    ClientWidth = 436
+    ClientWidth = 329
     TabOrder = 0
     object Lagrange_Memo: TMemo
-      Left = 8
-      Height = 72
+      Left = 0
+      Height = 80
       Top = 0
-      Width = 416
+      Width = 328
       BorderSpacing.CellAlignHorizontal = ccaCenter
       BorderSpacing.CellAlignVertical = ccaCenter
       BorderStyle = bsNone
@@ -38,19 +38,19 @@ object Form4: TForm4
     end
   end
   object Laguerre_GroupBox: TGroupBox
-    Left = 0
+    Left = 8
     Height = 112
     Top = 128
-    Width = 440
+    Width = 333
     Caption = 'Laguerre'
     ClientHeight = 84
-    ClientWidth = 436
+    ClientWidth = 329
     TabOrder = 1
     object Laguerre_Memo: TMemo
-      Left = 8
-      Height = 72
+      Left = 0
+      Height = 80
       Top = 0
-      Width = 416
+      Width = 328
       BorderSpacing.CellAlignHorizontal = ccaCenter
       BorderSpacing.CellAlignVertical = ccaCenter
       BorderStyle = bsNone
@@ -67,19 +67,19 @@ object Form4: TForm4
     end
   end
   object Newton_GroupBox: TGroupBox
-    Left = 0
+    Left = 8
     Height = 112
     Top = 248
-    Width = 440
+    Width = 333
     Caption = 'Newton'
     ClientHeight = 84
-    ClientWidth = 436
+    ClientWidth = 329
     TabOrder = 2
     object Newton_Memo: TMemo
-      Left = 8
-      Height = 72
+      Left = 0
+      Height = 80
       Top = 0
-      Width = 416
+      Width = 328
       BorderSpacing.CellAlignHorizontal = ccaCenter
       BorderSpacing.CellAlignVertical = ccaCenter
       BorderStyle = bsNone
@@ -96,19 +96,19 @@ object Form4: TForm4
     end
   end
   object Sturm_GroupBox: TGroupBox
-    Left = 0
+    Left = 8
     Height = 112
     Top = 368
-    Width = 440
+    Width = 333
     Caption = 'Sturm'
     ClientHeight = 84
-    ClientWidth = 436
+    ClientWidth = 329
     TabOrder = 3
     object Sturm_Memo: TMemo
-      Left = 8
-      Height = 72
+      Left = 0
+      Height = 80
       Top = 0
-      Width = 416
+      Width = 328
       BorderSpacing.CellAlignHorizontal = ccaCenter
       BorderSpacing.CellAlignVertical = ccaCenter
       BorderStyle = bsNone
