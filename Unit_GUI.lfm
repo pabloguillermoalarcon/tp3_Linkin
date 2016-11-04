@@ -56,7 +56,7 @@ object Form1: TForm1
     Top = 168
     Width = 488
     Caption = 'Posibles Raices Enteras'
-    ClientHeight = 104
+    ClientHeight = 97
     ClientWidth = 484
     TabOrder = 1
     object enteras_Memo: TMemo
@@ -85,7 +85,7 @@ object Form1: TForm1
     Top = 312
     Width = 488
     Caption = 'Posibles Raices Racionales'
-    ClientHeight = 104
+    ClientHeight = 97
     ClientWidth = 484
     TabOrder = 2
     object Racionales_Memo: TMemo

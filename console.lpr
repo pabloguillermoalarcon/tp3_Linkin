@@ -24,18 +24,18 @@ Clases:
 }
    pol_N:= cls_Polin.Crear(3);
    //pol_N.Coef.cells[4]:= 4;
-   pol_N.Coef.cells[3]:= 1;
+   pol_N.Coef.cells[3]:= 2;
    pol_N.Coef.cells[2]:= -4;
    pol_N.Coef.cells[1]:= -2;
-   pol_N.Coef.cells[0]:= -12;
+   pol_N.Coef.cells[0]:= 0;
    pol_n.Coef.mostrar('Coef: ');
 
    //V:= cls_Vector.crear();
-   V:= pol_n.PosiblesRaicesEnteras2();
-   V.mostrar('V-->Posibles Raices enteras2 ('+IntToStr(V.N)+')');
-
-   Pol_N.PosiblesRaicesEnteras(Pol_N.Coef,V);
-   V.mostrar('V-->Posibles Raices enteras ('+IntToStr(V.N)+')');
+   V:= pol_n.PosiblesRaicesEnteras();
+   V.mostrar('V-->Posibles Raices enteras('+IntToStr(V.N)+')');
+   readln;
+   V:= Pol_N.PosiblesRaicesRacionales();
+   V.mostrar('Racionales...'+IntToStr(V.N));
 
    {
    Pol_N.band_A0:= False;

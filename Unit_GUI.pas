@@ -142,7 +142,7 @@ Procedure TForm1.actualiza_Posibles_Raices_Enteras();
 Var
    raices: cls_Vector;
 Begin
-     raices:= Pol_N.PosiblesRaicesEnteras2();
+     raices:= Pol_N.PosiblesRaicesEnteras();
      enteras_Memo.Lines.Text:= raices.ToString();
      raices.Free;
 end;
@@ -151,8 +151,7 @@ Procedure TForm1.actualiza_Posibles_Raices_Racionales();
 Var
    raices: cls_Vector;
 Begin
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+     raices:= Pol_N.PosiblesRaicesRacionales();
      Racionales_Memo.Lines.Text:= raices.ToString(2);
      raices.Free;
 end;
@@ -256,8 +255,7 @@ VAR
     raices: cls_Vector;
 begin
      //Posibles Raices Racionales
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+     raices:= Pol_N.PosiblesRaicesRacionales();
 
      if (MASC_RAC=MIN_MASC+1) then MASC_RAC:= MAX_MASC
      else dec(MASC_RAC);
@@ -272,8 +270,7 @@ VAR
     raices: cls_Vector;
 begin
      //Posibles Raices Racionales
-     raices:= Cls_Vector.Crear();
-     Pol_N.PosiblesRaicesRacionales(Pol_N.Coef,raices);
+     raices:= Pol_N.PosiblesRaicesRacionales();
 
      if (MASC_RAC=MAX_MASC) then MASC_RAC:= MIN_MASC +1
      else inc(MASC_RAC);

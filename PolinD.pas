@@ -31,9 +31,8 @@ Type
          Function derivada():cls_Polin; //devuelve la derivada primera del polinomio
          Function ruffini(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          Function hornerCuadratico(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
-         Procedure PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
-         Function PosiblesRaicesEnteras2(): cls_Vector;
-         Procedure PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
+         Function PosiblesRaicesEnteras(): cls_Vector;
+         Function PosiblesRaicesRacionales(): cls_Vector;
          Procedure Lagrange(var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          Procedure Laguerre(X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
          Function cotasNewton():cls_Vector;
@@ -52,8 +51,7 @@ Type
          function hornerCuad(divisor:Cls_Polin;var cociente:Cls_Polin;var resto:Cls_Polin):boolean;
          function subPolin(posini:integer;cant:integer):Cls_Polin; //no le veo la necesidad de q sea publico
          //Posibles Raices Enteras
-         Function detDivPos2(num:integer): cls_Vector;
-         Procedure detDivPos(num:integer;var Vec:Cls_Vector);
+         Function detDivPos(num:integer): cls_Vector;
          Function EvaluarPolinomio(P: Cls_Vector; X: extended): extended;
          Procedure ruffiniEvaluador(A: Cls_Vector;var B: Cls_Vector; X: extended);   // A es el vector con los coeficientes del polinomio ingresado
          //metodos de cambio de variable...
@@ -377,32 +375,7 @@ begin
   B.destroy();
 end;
 
-PROCEDURE cls_Polin.detDivPos(num:integer;var Vec:Cls_Vector);
-var
-  i,j:integer;
-begin
-  j:=0;
-  if (num<>1) and (num<>-1)then
-    if num<>0 then
-      begin
-        Vec.cells[j]:=1;
-        for i:=2 to num div 2 do
-           if(num mod i = 0) then
-           begin
-             j:=j+1;
-             Vec.cells[j]:=i;
-           end;
-        j:=j+1;
-        Vec.cells[j]:=num;
-      end
-    else
-      Vec.cells[j]:=0
-  else
-    Vec.cells[j]:=1;
-  Vec.N:=j;
-end;
-
-Function cls_Polin.detDivPos2(num:integer): cls_Vector;
+Function cls_Polin.detDivPos(num:integer): cls_Vector;
 var
   i,j:integer;
   Vec: cls_Vector;
@@ -431,75 +404,52 @@ begin
     RESULT:= Vec;
 end;
 
-Function cls_Polin.PosiblesRaicesEnteras2(): cls_Vector;
+Function cls_Polin.PosiblesRaicesEnteras(): cls_Vector;
 var
     ult,i:byte;
     C: cls_Vector;
 begin
-  C:= detDivPos2(trunc(self.coef.cells[0]));
-  ult:=C.N;
-  //En este for se agrego los divisores negativos
-  for i:= 0 to ult do begin
-      C.Redimensionar(C.N+2);
-      C.cells[C.N]:=C.cells[i]*-1;
-  end;
-  RESULT:= C;
+     C:= detDivPos(trunc(self.coef.cells[0]));
+     ult:=C.N;
+     for i:= 0 to ult do begin //En este for se agrego los divisores negativos
+         C.Redimensionar(C.N+2);//Se agrega un elemento
+         C.cells[C.N]:=C.cells[i]*-1;
+     end;
+     RESULT:= C;
 end;
 
-procedure cls_Polin.PosiblesRaicesEnteras(P: Cls_Vector; var C: Cls_Vector);
-var ult,i:byte;
-begin
-  self.Invertir_Coef();
-  detDivPos(trunc(P.cells[P.N]),C);
-  ult:=C.N;
-  //En este for se agrego los divisores negativos
-  for i:=0 to C.N do
-    begin
-      ult:=ult+1;
-      C.cells[ult]:=C.cells[i]*-1;
-    end;
-  C.N:=ult;
-  self.Invertir_Coef();
-end;
-procedure cls_Polin.PosiblesRaicesRacionales(Pol:Cls_Vector;var PRR:Cls_Vector);
+Function cls_Polin.PosiblesRaicesRacionales(): cls_Vector;
 var
   i,j,k:byte;
-  DTI,DTP:Cls_Vector;
+  DTI,DTP, PRR:Cls_Vector;
   TP,TI:integer;
   PR:extended;
 begin
-  self.Invertir_Coef();
-  TP:=trunc(Pol.cells[0]);//La parte entera del Termino principal
-  TI:=trunc(Pol.cells[Pol.N]);//La parte entera del Termino Independiente
-  if TI<>0 then
-    begin
-      DTI:=Cls_Vector.crear(TI+2);
-      DTP:=Cls_Vector.crear(TP+2);
-      detDivPos(TI,DTI);//Determina los Divisores positivos del termino Independiente
-      detDivPos(TP,DTP);//Determina los Divisores positivos del termino Principal
+  TP:=trunc(self.coef.cells[self.Coef.N]);//La parte entera del Termino principal
+  TI:=trunc(Self.Coef.cells[0]);//La parte entera del Termino Independiente
+  PRR:= Cls_Vector.Crear(1);
+  if TI<>0 then begin
+      DTI:= detDivPos(TI);//Determina los Divisores positivos del termino Independiente
+      DTP:= detDivPos(TP);//Determina los Divisores positivos del termino Principal
       k:=0;//Inicializa indice k que me llevara las posiciones del vector de PRR:Posibles raices Racionales
       for i:=0 to DTI.N do//Este For maneja al vector DTI:Divisores del Termino Independiente
-        for j:=0 to DTP.N do//Este for maneja al vector DTP:Divisores del Termino Principal
-          begin
-            PR:=DTI.cells[i]/DTP.cells[j];//calcula la PR:Posibles raiz
-            if (PR<>trunc(PR)) then//Pregunta si el numero no es un entero entonces
-              begin
-                PRR.cells[k]:=PR;//Asigna la posible raiz positiva al vector de PRR:Posibles raices Racionales
-                PRR.cells[k+1]:=-PR;//Asigna la posible raiz negativa al vector de PRR:Posibles raices Racionales
-                k:=k+2;//incrementa indice k
+          for j:=0 to DTP.N do begin//Este for maneja al vector DTP:Divisores del Termino Principal
+              PR:=DTI.cells[i]/DTP.cells[j];//calcula la PR:Posibles raices Racionales
+              if (PR<>trunc(PR)) then begin//Pregunta si el numero no es un entero entonces
+                 PRR.Redimensionar(K+2);
+                 PRR.cells[k]:=PR;//Asigna la posible raiz positiva al vector de PRR:Posibles raices Racionales
+                 PRR.cells[k+1]:=-PR;//Asigna la posible raiz negativa al vector de PRR:Posibles raices Racionales
+                 k:=k+2;//incrementa indice k
               end;
           end;
-      DTI.destroy();
-      DTP.destroy();
-      PRR.N:=k-1;//Asigna el tamaño o la cantidad de elementos del vector de PRR:posibles raices racionales
-    end
-  else
-    begin
-      PRR.cells[0]:=0;
-      PRR.N:=0;
-    end;
-    self.Invertir_Coef();
+      DTI.Free();
+      DTP.Free();
+  end else begin
+           PRR.cells[0]:= 0;
+      end;
+  RESULT:= PRR;
 end;
+
 //Este metodo se encargar de realizar el cambio de variable 1/t y multiplicarla por t^n y asi obtener un nuevo polinomio en funcion de t
 procedure cls_polin.polNew1(Pol:Cls_Vector; var newPol:Cls_Vector);
 var
