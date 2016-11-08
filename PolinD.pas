@@ -34,9 +34,9 @@ Type
          Function PosiblesRaicesEnteras(): cls_Vector;
          Function PosiblesRaicesRacionales(): cls_Vector;
          Procedure Lagrange(var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
-         Procedure Laguerre(X:extended;var cota:Cls_Vector);//Devuelve un vector con 4 valores que son las cotas, en caso de no tener una cota se retornara un 0(cero)
+         Function Laguerre():Cls_Vector; 
          Function cotasNewton():cls_Vector;
-         Procedure sturm(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
+         Function Sturm():Cls_Vector;
          Procedure bairstow(error:extended; r:extended; s:extended);
    const
          max_iter=200;
@@ -583,94 +583,333 @@ begin
   self.Invertir_Coef();
 end;
 
-function cls_Polin.cotaSupPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
+function cotaSupPosLaguerre(Pol:Cls_Vector):extended;
 var
    B: Cls_Vector;
    i,band:byte;
+   j:extended;
 begin
   B:=Cls_Vector.crear(100);
-  ruffiniEvaluador(Pol,B,X);
   band:=0;
-  for i:=0 to B.N-1 do
-    if B.cells[i]<0 then
-      band:=1;
+  j:=0;
+  while (j<=100) and (band=0) do
+    begin
+     ruffiniEvaluador(Pol,B,j);
+     for i:=0 to B.N do
+       begin
+         if B.cells[i]<0 then
+           band:=1;
+       end;
+      if band=1 then
+        begin
+          band:=0;
+          j:=j+0.1;
+        end
+      else
+        begin
+         band:=1;
+        end;
+    end;
   if band=1 then
-    cotaSupPosLaguerre:=0
+    CotaSupPosLaguerre:=j
   else
-     CotaSupPosLaguerre:=X;
-  B.destroy();
+    CotaSupPosLaguerre:=-1;
+    B.destroy;
 end;
-function cls_Polin.cotaInfPosLaguerre(Pol:Cls_Vector;X:Extended):extended;
+function cotaInfPosLaguerre(Pol:Cls_Vector):extended;
 var
    i,band:byte;
    newPol,B:Cls_Vector;
+   j:extended;
 begin
   newPol:=Cls_Vector.crear(100);
   B:=Cls_Vector.crear(100);
   polNew1(Pol,newPol);
-  ruffiniEvaluador(newPol,B,1/X);
+  j:=100;
   band:=0;
-  for i:=0 to B.N-1 do
-    if B.cells[i]<0 then
-      band:=1;
+  while (j>0) and (band=0) do
+    begin
+     ruffiniEvaluador(newPol,B,1/j);
+     for i:=0 to B.N do
+       begin
+         if B.cells[i]<0 then
+           band:=1;
+       end;
+      if band=1 then
+        begin
+          band:=0;
+          j:=j-0.1;
+        end
+      else
+        begin
+         band:=1;
+        end;
+    end;
   if band=1 then
-    cotaInfPosLaguerre:=0
+    CotaInfPosLaguerre:=j
   else
-     CotaInfPosLaguerre:=X;
+    CotaInfPosLaguerre:=-1;
+  B.Destroy;
+  newPol.Destroy;
 end;
-
-function cls_Polin.cotaSupNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
+function cotaSupNegLaguerre(Pol:Cls_Vector):extended;
 var
    i,band:byte;
    newPol,B:Cls_Vector;
+   j:extended;
 begin
   newPol:=Cls_Vector.crear(100);
   B:=Cls_Vector.crear(100);
   polNew2(Pol,newPol);
-  ruffiniEvaluador(newPol,B,-1/X);
   band:=0;
-  for i:=0 to B.N-1 do
-    if B.cells[i]<0 then
-      band:=1;
+  j:=-100;
+  while (j<0) and (band=0) do
+    begin
+     ruffiniEvaluador(newPol,B,-1/j);
+     for i:=0 to B.N do
+       begin
+         if B.cells[i]<0 then
+           band:=1;
+       end;
+      if band=1 then
+        begin
+          band:=0;
+          j:=j+0.1;
+        end
+      else
+        begin
+         band:=1;
+        end;
+    end;
   if band=1 then
-    cotaSupNegLaguerre:=0
+    CotaSupNegLaguerre:=j
   else
-     CotaSupNegLaguerre:=X;
+    CotaSupNegLaguerre:=1;
+  B.Destroy;
+  newPol.Destroy;
 end;
-function cls_Polin.cotaInfNegLaguerre(Pol:Cls_Vector;X:Extended):extended;
+function cotaInfNegLaguerre(Pol:Cls_Vector):extended;
 var
   i,band:byte;
   newPol,B:Cls_Vector;
+  j:extended;
 begin
   newPol:=Cls_Vector.crear(100);
   B:=Cls_Vector.crear(100);
   polNew3(Pol,newPol);
-  ruffiniEvaluador(newPol,B,-1*X);
-  writeln(b.N);
-  writeln(b.cells[0]);
-  writeln(b.cells[1]);
-  writeln(b.cells[2]);
-  writeln(b.cells[3]);
-  writeln(b.cells[4]);
   band:=0;
-  for i:=0 to B.N-1 do
-    if B.cells[i]<0 then
-      band:=1;
+  j:=0;
+  while (band=0) and (j>=-100) do
+    begin
+     ruffiniEvaluador(newPol,B,-j);
+     for i:=0 to B.N do
+       begin
+         if B.cells[i]<0 then
+           band:=1;
+       end;
+      if band=1 then
+        begin
+          band:=0;
+          j:=j-0.1;
+        end
+      else
+         band:=1;
+    end;
   if band=1 then
-    cotaInfNegLaguerre:=0
+    CotaInfNegLaguerre:=j
   else
-     CotaInfNegLaguerre:=X;
+    CotaInfNegLaguerre:=1;
 end;
-procedure cls_Polin.Laguerre(X:extended;var cota:Cls_Vector);
+procedure Laguerre1(Pol:Cls_Vector;var cota:Cls_Vector);
+var i,c:byte;
 begin
-  self.Invertir_Coef();
-  cota.cells[0]:=cotaSupPosLaguerre(self.Coef,X);
-  cota.cells[1]:=cotaInfPosLaguerre(self.Coef,X);
-  cota.cells[2]:=cotaSupNegLaguerre(self.Coef,X);
-  cota.cells[3]:=cotaInfNegLaguerre(self.Coef,X);
+  c:=0;
+  for i:=1 to Pol.N do
+    if Pol.cells[0]=0 then
+      c:=c+1;
   cota.N:=3;
-  self.Invertir_Coef();
-end;  
+  if (Pol.cells[0]=0) and (c=Pol.N) then
+    for i:=0 to Pol.N do
+      cota.cells[i]:=0
+  else
+    begin
+     cota.cells[0]:=cotaInfNegLaguerre(Pol);
+     cota.cells[1]:=cotaSupNegLaguerre(Pol);
+     cota.cells[2]:=cotaInfPosLaguerre(Pol);
+     cota.cells[3]:=cotaSupPosLaguerre(Pol);
+    end;
+end;
+procedure derivada(Pol:Cls_Vector;var PolDer:Cls_Vector);
+var
+  i,grado:byte;
+begin
+  grado:=Pol.N;
+  for i:=0 to Pol.N-1 do
+    begin
+      PolDer.cells[i]:=Pol.cells[i]*grado;
+      grado:=grado-1;
+    end;
+  PolDer.N:=Pol.N-1;
+end;
+//Este metodo se encargar de obtener el resto de dividor 2 polinomios de nxn
+procedure restoDivPolinomioNxN(Pol1:Cls_Vector;Pol2:Cls_Vector;var Pol3:Cls_Vector);
+var
+  i,CC:byte;
+  coc:extended;
+begin
+  //En este motodo no controlo si Pol1>=Pol2 ya que la derivada de un polinomio siempre me devolvera un polinomio de menor grado que el dado
+  Pol3.N:=Pol1.N;
+  while Pol3.N>=Pol2.N do
+    begin
+     Pol3.N:=Pol3.N-1;//ponemos Pol1.N-1 porque sabemos que el grado del Pol1.N-1 sera el grado del nuevo polinomio que es el resto sin importar que el primer valor puede darnos 0
+     CC:=Pol1.N-Pol2.N;//Cantidad de ceros que se agregaran
+     //En este For agregamos los cerros para completar el Polinomio Pol2 y asi poder sumas y restar correspondientemente
+     for i:=Pol2.N+1 to Pol2.N+CC do
+       Pol2.cells[i]:=0;
+     coc:=Pol1.cells[0]/Pol2.cells[0];//coc sacara los valores de los cocientes
+     //Este For se encargara de crear el nuevo polinomio que sera el resto
+     for i:=0 to Pol1.N-1 do
+       begin
+       Pol3.cells[i]:=Pol1.cells[i+1]-(Pol2.cells[i+1]*coc);//Se puso i+1 para ignorar el primer calculo
+       end;
+     ///Todo lo que esta qui dentro del while se encargara de eleminar los ceros de adelante
+     while (Pol3.cells[0]=0) and (Pol3.N>0) do
+       begin
+        for i:=0 to Pol3.N-1 do
+         Pol3.cells[i]:=Pol3.cells[i+1];
+        Pol3.N:=Pol3.N-1;
+       end;
+    end;
+end;
+
+procedure sturm1(Pol:Cls_Vector;Inter:Cls_Vector;var InterRaiz:Cls_Vector);
+var
+  Pol1,Pol2,Pol3:Cls_Vector;
+  m:Cls_Matriz;
+  i,j,c:byte;
+begin
+  Pol1:=Cls_Vector.crear(Pol.N);
+  Pol2:=Cls_Vector.crear(Pol.N);
+  Pol3:=Cls_Vector.crear(Pol.N);
+  Pol1.Copiar(Pol);//Copiamos el polinomio dado en Pol1 porque mas adelante lo modificaremos
+  derivada(Pol1,Pol2);
+  m:=Cls_Matriz.crear(Pol.N+2,Inter.N+1);//Se coloca Pol.N+2 porque queremos una fila mas donde se colocara la cantidad de cambio de variables
+  //Evaluamos el pol1 y la derivada
+  for j:=0 to Inter.N do//Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados en el intervalo pasado por parametro)
+   begin
+      m.cells[0,j]:=EvaluarPolinomio(Pol1,Inter.cells[j]);
+      m.cells[1,j]:=EvaluarPolinomio(Pol2,Inter.cells[j]);
+   end;
+  for i:=2 to Pol.N-1 do//Este For controla las filas de la tabla(hace referencia a los polinomios que obtendre y evaluados)
+    begin
+      restoDivPolinomioNxN(Pol1,Pol2,Pol3);//Obtenemos un nuevo polinomio que correspode a el resto de dividir Pol1 / Pol2
+      Pol1.Copiar(Pol2);
+      Pol2.Copiar(Pol3);
+      for j:=0 to Inter.N do//Este For controla las columnas de la tabla(hace referencia a la cantidad de puntos dados en el intervalo pasado por parametro)
+       m.cells[i,j]:=EvaluarPolinomio(Pol3,Inter.cells[j]);
+    end;
+  //Este For se encargara de llenar la ultima fila con el valor que quedo
+  for j:=0 to Inter.N do
+   begin
+    m.cells[Pol.N,j]:=Pol3.cells[0];//En ves de Pol.N podria tambien haber puesto m.NumF-1
+   end;
+   //Este For se encargara de Contar la cantidad de cambio de signos que ay por columna
+   for j:=0 to m.NumC do
+    begin
+      c:=0;
+      for i:=0 to m.NumF-1 do
+        begin
+          if m.cells[i,j]*m.cells[i+1,j]<0 then
+            c:=c+1;
+        end;
+      m.cells[m.NumF,j]:=c;
+    end;
+  //Este for se encargara de determinar que intervalo tiene una o mas raices y enviarlo a InterRaiz
+  InterRaiz.cells[0]:=0;//Hace referencia a que cuando empieza ningun intervalo tendra raiz
+  InterRaiz.N:=-1;
+  for j:=0 to 1 do
+   begin
+    if abs(m.cells[m.NumF,j]-m.cells[m.NumF,j+1])>0 then
+      begin
+        InterRaiz.cells[InterRaiz.N+1]:=Inter.cells[j];
+        InterRaiz.cells[InterRaiz.N+2]:=Inter.cells[j+1];
+        InterRaiz.N:=InterRaiz.N+2;
+      end;
+   end;
+  for j:=3 to 4 do
+   begin
+    if abs(m.cells[m.NumF,j]-m.cells[m.NumF,j+1])>0 then
+      begin
+        InterRaiz.cells[InterRaiz.N+1]:=Inter.cells[j];
+        InterRaiz.cells[InterRaiz.N+2]:=Inter.cells[j+1];
+        InterRaiz.N:=InterRaiz.N+2;
+      end;
+   end;
+end;
+Function Cls_Polin.Sturm():Cls_Vector;
+var
+  cota,interR:Cls_Vector;
+begin
+  if self.Grado>0 then
+    begin
+      cota:=Cls_Vector.crear(100);//Este Cota sera el intervalo a trabajar
+      interR:=Cls_Vector.crear(100);//Este interR contendra los puntos que encierran una raiz
+      self.Invertir_Coef();
+      c1:=cotaInfNegLaguerre(Self.Coeficientes);
+      c2:=cotaSupNegLaguerre(Self.Coeficientes);
+      c3:=cotaInfPosLaguerre(Self.Coeficientes);
+      c4:=cotaSupPosLaguerre(Self.Coeficientes);
+      if (c1<>0) and (c2<>0) then
+        if (c3<>0) and (c4<>0) then
+          begin
+            cota.cells[0]:=c1;
+            cota.cells[1]:=(c1+c2)/2;
+            cota.cells[2]:=c2;
+            cota.cells[3]:=c3;
+            cota.cells[4]:=(c3+c4)/2;
+            cota.cells[5]:=c4;
+            cota.N:=5;
+            sturm1(Self.Coeficientes,cota,interR);
+            self.Invertir_Coef();
+          end
+        else
+          begin
+            cota.cells[0]:=c1;
+            cota.cells[1]:=(c1+c2)/2;
+            cota.cells[2]:=c2;
+            cota.N:=2;
+            sturm1(Self.Coeficientes,cota,interR);
+            self.Invertir_Coef();
+          end
+      else
+        if (c3<>0) and (c4<>0) then
+          begin
+            cota.cells[0]:=c3;
+            cota.cells[1]:=(c3+c4)/2;
+            cota.cells[2]:=c4;
+            cota.N:=2;
+            sturm1(Self.Coeficientes,cota,interR);
+            self.Invertir_Coef();
+          end
+        else
+          interR.cells[0]:=0;
+      self.Invertir_Coef();
+      result:=interR;
+    end;
+end;
+Function Cls_Polin.Laguerre():Cls_Vector;
+var
+  cota:Cls_Vector;
+begin
+  if self.Grado>0 then
+    begin
+      cota:=Cls_Vector.crear(100);
+      Self.Invertir_Coef();
+      Laguerre1(Self.Coeficientes,cota);
+      Self.Invertir_Coef();
+      result:=cota;
+    end;
+end;                                                        
 function cls_Polin.cotaSupPosNewton():extended;
 var
 	pAux:cls_Polin;
